@@ -6,7 +6,7 @@
   "refmap": "transferables.refmap.json",
   "mixins": ["ShaftPortalMixin"
   ],
-  "client": ["client.ShaftPortalExtensionMixin"
+  "client": [
   ],
   "injectors": {
     "defaultRequire": 1

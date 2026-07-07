@@ -2,7 +2,6 @@ package com.reggarf.mods.transferables.mixin;
 
 import javax.annotation.Nullable;
 
-import com.reggarf.mods.transferables.PortalShaftAccess;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -11,10 +10,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.simibubi.create.api.contraption.train.PortalTrackProvider;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
 
+import com.reggarf.mods.transferables.PortalShaftAccess;
 import com.reggarf.mods.transferables.network.PortalShaftLink;
 
 import net.minecraft.core.BlockPos;
@@ -25,6 +24,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 @Mixin(value = KineticBlockEntity.class, remap = false)
 public abstract class ShaftPortalMixin implements PortalShaftAccess {
+
 
 	@Shadow @Nullable public Long network;      // network ID (a Long!), null == no network
 	@Shadow @Nullable public BlockPos source;
@@ -40,6 +40,7 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
 	@Shadow public abstract void onSpeedChanged(float previousSpeed);
 	@Shadow public abstract void attachKinetics();   // wraps RotationPropagator.handleAdded
 	@Shadow public abstract void detachKinetics();   // wraps RotationPropagator.handleRemoved
+
 
 	@Unique
 	private static final float create$EPSILON = 1.0e-3f;
@@ -110,7 +111,6 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
 		create$syncStressTransfer(partner);
 	}
 
-
 	@Unique
 	private void create$resolveLink(ServerLevel serverLevel, BlockState state) {
 		create$otherLevel = null;
@@ -120,15 +120,15 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
 		BlockPos pos = create$self().getBlockPos();
 
 		Direction[] ends = {
-				Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE),
-				Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE)
+			Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE),
+			Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE)
 		};
 
 		for (Direction dir : ends) {
-			PortalTrackProvider.Exit exit = PortalShaftLink.resolve(serverLevel, pos, dir);
+			PortalShaftLink.PortalShaftEndpoint exit = PortalShaftLink.resolveShaft(serverLevel, pos, dir);
 			if (exit != null) {
-				create$otherLevel = exit.level();       // Exit record accessor
-				create$otherPos = exit.face().getPos(); // BlockFace accessor
+				create$otherLevel = exit.level();
+				create$otherPos = exit.shaftPos();
 				return;
 			}
 		}
@@ -143,6 +143,8 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
 		return create$otherLevel.getBlockEntity(create$otherPos) instanceof PortalShaftAccess a ? a : null;
 	}
 
+
+
 	/** Sender = my side has a REAL source beyond the SU imported from the portal. */
 	@Unique
 	private boolean create$computeSender() {
@@ -150,6 +152,8 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
 			return false;
 		return capacity - create$provided > create$EPSILON;
 	}
+
+
 
 	/**
 	 * Make the receiver a REAL source. Once getGeneratedSpeed() returns the
@@ -168,11 +172,11 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
 		cir.setReturnValue(partner == null ? 0f : partner.create$currentSpeed());
 	}
 
+	/** Re-seed propagation as a true source; only called when the generated value changes. */
 	@Unique
 	private void create$applyGeneratedSpeed(float gen, boolean nextReceiver, float previousGenerated) {
 		KineticBlockEntity self = create$self();
 		float prev = getSpeed();
-
 
 		create$detachingGeneratedSpeed = create$receiver ? previousGenerated : 0f;
 		detachKinetics();
@@ -262,8 +266,7 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
 		if (network == null)
 			return 0f;
 
-		// lastStressApplied is a base value. Convert it back to final SU before
-		// subtracting the portal's own echoed load from this side's local load.
+
 		float portalStress = create$toActual(lastStressApplied, create$self().getTheoreticalSpeed());
 		float localStress = Math.max(0f, stress - portalStress);
 		return Math.max(0f, capacity - localStress);
@@ -277,7 +280,6 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
 		float portalStress = create$toActual(lastStressApplied, create$self().getTheoreticalSpeed());
 		return Math.max(0f, stress - portalStress);
 	}
-
 
 	@Inject(method = "calculateAddedStressCapacity", at = @At("HEAD"), cancellable = true)
 	private void create$addCapacity(CallbackInfoReturnable<Float> cir) {
