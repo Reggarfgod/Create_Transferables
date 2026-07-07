@@ -2,7 +2,8 @@ package com.reggarf.mods.transferables.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.simibubi.create.api.contraption.train.PortalTrackProvider;
+import com.reggarf.mods.transferables.api.PortalShaftProvider;
+import com.reggarf.mods.transferables.network.PortalShaftLink;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
@@ -12,16 +13,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
-import net.minecraft.core.Direction.AxisDirection;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -56,68 +54,76 @@ public final class PortalShaftClientEvents {
 			for (int y = -VERTICAL_RENDER_RADIUS; y <= VERTICAL_RENDER_RADIUS; y++) {
 				for (int z = -HORIZONTAL_RENDER_RADIUS; z <= HORIZONTAL_RENDER_RADIUS; z++) {
 					mutable.set(cameraPos.getX() + x, cameraPos.getY() + y, cameraPos.getZ() + z);
-					BlockState state = level.getBlockState(mutable);
-					if (!(state.getBlock() instanceof ShaftBlock))
+					if (!PortalShaftProvider.isSupportedPortal(level.getBlockState(mutable)))
 						continue;
 
-					BlockEntity blockEntity = level.getBlockEntity(mutable);
-					if (!(blockEntity instanceof KineticBlockEntity shaft))
-						continue;
-
-					Axis axis = state.getValue(BlockStateProperties.AXIS);
-					renderPortalEnd(shaft, level, axis, Direction.fromAxisAndDirection(axis, AxisDirection.POSITIVE),
-						camera, poseStack, buffer);
-					renderPortalEnd(shaft, level, axis, Direction.fromAxisAndDirection(axis, AxisDirection.NEGATIVE),
-						camera, poseStack, buffer);
+					renderPortalBlockShafts(level, mutable.immutable(), camera, poseStack, bufferSource, buffer);
 				}
 			}
 		}
 
+		bufferSource.endBatch(RenderType.solid());
+		bufferSource.endBatch(RenderType.cutout());
 		bufferSource.endBatch(RenderType.cutoutMipped());
 	}
 
-	private static void renderPortalEnd(KineticBlockEntity shaft, ClientLevel level, Axis axis, Direction direction,
-		Camera camera, PoseStack poseStack, VertexConsumer buffer) {
-		BlockPos portalPos = shaft.getBlockPos().relative(direction);
-		Block portalBlock = level.getBlockState(portalPos).getBlock();
-		if (!isPortalBlock(portalBlock))
-			return;
+	private static void renderPortalBlockShafts(ClientLevel level, BlockPos portalPos, Camera camera, PoseStack poseStack,
+	                                            MultiBufferSource.BufferSource bufferSource, VertexConsumer buffer) {
+		for (Direction fromPortalToShaft : Direction.values()) {
+			Direction shaftTowardPortal = fromPortalToShaft.getOpposite();
+			BlockPos shaftPos = portalPos.relative(fromPortalToShaft);
+			BlockState shaftState = level.getBlockState(shaftPos);
+			Axis axis = PortalShaftLink.getPortalShaftAxis(shaftState);
+			if (axis == null || axis != shaftTowardPortal.getAxis())
+				continue;
 
+			BlockEntity blockEntity = level.getBlockEntity(shaftPos);
+			if (!(blockEntity instanceof KineticBlockEntity shaft))
+				continue;
+
+			renderShaftOnPortalBlock(shaft, shaftState, level, portalPos, axis, shaftTowardPortal, camera, poseStack,
+					bufferSource, buffer);
+		}
+	}
+
+	private static void renderShaftOnPortalBlock(KineticBlockEntity shaft, BlockState shaftState, ClientLevel level,
+	                                             BlockPos portalPos, Axis axis, Direction shaftTowardPortal, Camera camera, PoseStack poseStack,
+	                                             MultiBufferSource.BufferSource bufferSource, VertexConsumer buffer) {
 		poseStack.pushPose();
 		poseStack.translate(
-			portalPos.getX() - camera.getPosition().x,
-			portalPos.getY() - camera.getPosition().y,
-			portalPos.getZ() - camera.getPosition().z
+				portalPos.getX() - camera.getPosition().x,
+				portalPos.getY() - camera.getPosition().y,
+				portalPos.getZ() - camera.getPosition().z
 		);
-		renderNearestPortalHalf(direction, poseStack);
+		renderNearestPortalHalf(shaftTowardPortal, poseStack);
 
 		int light = LevelRenderer.getLightColor(level, portalPos);
+		if (!(shaftState.getBlock() instanceof ShaftBlock)) {
+			Minecraft.getInstance().getBlockRenderer().renderSingleBlock(shaftState, poseStack, bufferSource, light,
+					OverlayTexture.NO_OVERLAY);
+		}
 		KineticBlockEntityRenderer.renderRotatingKineticBlock(shaft, KineticBlockEntityRenderer.shaft(axis), poseStack,
-			buffer, light);
+				buffer, light);
 		poseStack.popPose();
 	}
 
-	private static boolean isPortalBlock(Block block) {
-		return block == Blocks.NETHER_PORTAL || PortalTrackProvider.REGISTRY.get(block) != null;
-	}
-
-	private static void renderNearestPortalHalf(Direction direction, PoseStack poseStack) {
+	private static void renderNearestPortalHalf(Direction shaftTowardPortal, PoseStack poseStack) {
 		float length = HALF_SHAFT_LENGTH;
-		float offset = direction.getAxisDirection() == AxisDirection.NEGATIVE ? 1f - length : 0f;
+		float offset = shaftTowardPortal.getAxisDirection() == Direction.AxisDirection.NEGATIVE ? 1f - length : 0f;
 
-		switch (direction.getAxis()) {
-		case X -> {
-			poseStack.translate(offset, 0, 0);
-			poseStack.scale(length, 1, 1);
-		}
-		case Y -> {
-			poseStack.translate(0, offset, 0);
-			poseStack.scale(1, length, 1);
-		}
-		case Z -> {
-			poseStack.translate(0, 0, offset);
-			poseStack.scale(1, 1, length);
-		}
+		switch (shaftTowardPortal.getAxis()) {
+			case X -> {
+				poseStack.translate(offset, 0, 0);
+				poseStack.scale(length, 1, 1);
+			}
+			case Y -> {
+				poseStack.translate(0, offset, 0);
+				poseStack.scale(1, length, 1);
+			}
+			case Z -> {
+				poseStack.translate(0, 0, offset);
+				poseStack.scale(1, 1, length);
+			}
 		}
 	}
 }

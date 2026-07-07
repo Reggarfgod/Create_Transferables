@@ -2,13 +2,14 @@ package com.reggarf.mods.transferables.network;
 
 import javax.annotation.Nullable;
 
-import com.simibubi.create.api.contraption.train.PortalTrackProvider;
+import com.reggarf.mods.transferables.api.PortalShaftProvider;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
 
 import net.createmod.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -21,16 +22,9 @@ public final class PortalShaftLink {
 	public record PortalShaftEndpoint(ServerLevel level, BlockPos shaftPos) {}
 
 	@Nullable
-	public static PortalTrackProvider.Exit resolve(ServerLevel level, BlockPos shaftPos, Direction towardPortal) {
-		BlockPos portalPos = shaftPos.relative(towardPortal);
-		Block portalBlock = level.getBlockState(portalPos).getBlock();
-
-		PortalTrackProvider provider = PortalTrackProvider.REGISTRY.get(portalBlock);
-		if (provider == null)
-			return null;
-
+	public static PortalShaftProvider.Exit resolve(ServerLevel level, BlockPos shaftPos, Direction towardPortal) {
 		BlockFace inbound = new BlockFace(shaftPos, towardPortal);
-		return provider.findExit(level, inbound);
+		return PortalShaftProvider.getOtherSide(level, inbound);
 	}
 
 	@Nullable
@@ -38,7 +32,7 @@ public final class PortalShaftLink {
 		if (!isShaftOnPortalFace(level, shaftPos, towardPortal))
 			return null;
 
-		PortalTrackProvider.Exit exit = resolve(level, shaftPos, towardPortal);
+		PortalShaftProvider.Exit exit = resolve(level, shaftPos, towardPortal);
 		if (exit == null)
 			return null;
 
@@ -54,13 +48,25 @@ public final class PortalShaftLink {
 		return new PortalShaftEndpoint(otherLevel, otherShaftPos);
 	}
 
+	public static boolean isPortalShaft(BlockState state) {
+		Block block = state.getBlock();
+		return block instanceof ShaftBlock || BuiltInRegistries.BLOCK.getKey(block).getPath().endsWith("encased_shaft");
+	}
+
+	@Nullable
+	public static Direction.Axis getPortalShaftAxis(BlockState state) {
+		return isPortalShaft(state) && state.hasProperty(BlockStateProperties.AXIS)
+			? state.getValue(BlockStateProperties.AXIS)
+			: null;
+	}
+
 	private static boolean linksBack(ServerLevel level, BlockPos shaftPos, ServerLevel expectedLevel,
 		BlockPos expectedShaftPos) {
 		BlockState state = level.getBlockState(shaftPos);
-		if (!(state.getBlock() instanceof ShaftBlock))
+		Direction.Axis axis = getPortalShaftAxis(state);
+		if (axis == null)
 			return false;
 
-		Direction.Axis axis = state.getValue(BlockStateProperties.AXIS);
 		Direction[] ends = {
 			Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE),
 			Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE)
@@ -70,7 +76,7 @@ public final class PortalShaftLink {
 			if (!isShaftOnPortalFace(level, shaftPos, dir))
 				continue;
 
-			PortalTrackProvider.Exit back = resolve(level, shaftPos, dir);
+			PortalShaftProvider.Exit back = resolve(level, shaftPos, dir);
 			if (back == null)
 				continue;
 			if (back.level() == expectedLevel && back.face().getPos().equals(expectedShaftPos))
@@ -82,18 +88,15 @@ public final class PortalShaftLink {
 
 	private static boolean isShaftOnPortalFace(ServerLevel level, BlockPos shaftPos, Direction towardPortal) {
 		BlockState state = level.getBlockState(shaftPos);
-		if (!(state.getBlock() instanceof ShaftBlock))
+		Direction.Axis axis = getPortalShaftAxis(state);
+		if (axis == null || axis != towardPortal.getAxis())
 			return false;
 
-		if (state.getValue(BlockStateProperties.AXIS) != towardPortal.getAxis())
-			return false;
-
-		Block portalBlock = level.getBlockState(shaftPos.relative(towardPortal)).getBlock();
-		return PortalTrackProvider.REGISTRY.get(portalBlock) != null;
+		return PortalShaftProvider.isSupportedPortal(level.getBlockState(shaftPos.relative(towardPortal)));
 	}
 
 	private static boolean isShaft(ServerLevel level, BlockPos pos) {
-		if (!(level.getBlockState(pos).getBlock() instanceof ShaftBlock))
+		if (!isPortalShaft(level.getBlockState(pos)))
 			return false;
 		BlockEntity blockEntity = level.getBlockEntity(pos);
 		return blockEntity instanceof KineticBlockEntity;
