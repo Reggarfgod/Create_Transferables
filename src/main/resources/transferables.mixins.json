@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.reggarf.mods.transferables.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "transferables.refmap.json",
+  "mixins": ["ShaftPortalMixin"
+  ],
+  "client": ["client.ShaftPortalExtensionMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
