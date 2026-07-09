@@ -1,20 +1,19 @@
 package com.reggarf.mods.transferables.network;
 
-import javax.annotation.Nullable;
-
 import com.reggarf.mods.transferables.api.PortalShaftProvider;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
-
+import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock;
 import net.createmod.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+
+import javax.annotation.Nullable;
 
 public final class PortalShaftLink {
 	private PortalShaftLink() {}
@@ -48,9 +47,10 @@ public final class PortalShaftLink {
 		return new PortalShaftEndpoint(otherLevel, otherShaftPos);
 	}
 
+
 	public static boolean isPortalShaft(BlockState state) {
 		Block block = state.getBlock();
-		return block instanceof ShaftBlock || BuiltInRegistries.BLOCK.getKey(block).getPath().endsWith("encased_shaft");
+		return block instanceof ShaftBlock || block instanceof EncasedShaftBlock;
 	}
 
 	@Nullable
@@ -79,7 +79,7 @@ public final class PortalShaftLink {
 			PortalShaftProvider.Exit back = resolve(level, shaftPos, dir);
 			if (back == null)
 				continue;
-			if (back.level() == expectedLevel && back.face().getPos().equals(expectedShaftPos))
+			if (back.level().dimension().equals(expectedLevel.dimension()) && back.face().getPos().equals(expectedShaftPos))
 				return true;
 		}
 
@@ -101,4 +101,5 @@ public final class PortalShaftLink {
 		BlockEntity blockEntity = level.getBlockEntity(pos);
 		return blockEntity instanceof KineticBlockEntity;
 	}
+
 }

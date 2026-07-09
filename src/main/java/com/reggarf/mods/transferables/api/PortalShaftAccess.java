@@ -1,4 +1,6 @@
-package com.reggarf.mods.transferables;
+package com.reggarf.mods.transferables.api;
+
+import net.minecraft.core.Direction;
 
 public interface PortalShaftAccess {
 	boolean create$isPortalSender();

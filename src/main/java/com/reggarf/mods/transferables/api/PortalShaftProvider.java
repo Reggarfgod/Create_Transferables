@@ -52,22 +52,5 @@ public interface PortalShaftProvider {
 		return trackExit == null ? null : new Exit(trackExit.level(), trackExit.face());
 	}
 
-	@Nullable
-	static Exit fromTeleporter(ServerLevel level, BlockFace face, ResourceKey<Level> firstDimension,
-		ResourceKey<Level> secondDimension, Function<ServerLevel, ITeleporter> customPortalForcer) {
-		PortalTrackProvider.Exit trackExit = PortalTrackProvider.fromTeleporter(level, face, firstDimension,
-			secondDimension, customPortalForcer);
-		return trackExit == null ? null : new Exit(trackExit.level(), trackExit.face());
-	}
-
-	@Nullable
-	static Exit fromProbe(ServerLevel level, BlockFace face, ResourceKey<Level> firstDimension,
-		ResourceKey<Level> secondDimension,
-		BiFunction<ServerLevel, SuperGlueEntity, PortalInfo> portalInfoProvider) {
-		PortalTrackProvider.Exit trackExit = PortalTrackProvider.fromProbe(level, face, firstDimension, secondDimension,
-			portalInfoProvider);
-		return trackExit == null ? null : new Exit(trackExit.level(), trackExit.face());
-	}
-
 	record Exit(ServerLevel level, BlockFace face) {}
 }
