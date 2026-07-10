@@ -2,6 +2,7 @@ package com.reggarf.mods.transferables;
 
 import com.mojang.logging.LogUtils;
 
+import com.reggarf.mods.transferables.client.PortalFluidClientEvents;
 import com.reggarf.mods.transferables.client.PortalShaftClientEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -38,7 +39,8 @@ public class Transferables {
             LOGGER.info("HELLO FROM CLIENT SETUP");
             LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
             event.enqueueWork(() -> {
-               //MinecraftForge.EVENT_BUS.register(PortalShaftClientEvents.class);
+               MinecraftForge.EVENT_BUS.register(PortalShaftClientEvents.class);
+               MinecraftForge.EVENT_BUS.register(PortalFluidClientEvents.class);
             });
 
         }

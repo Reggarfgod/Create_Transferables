@@ -1,23 +1,15 @@
 package com.reggarf.mods.transferables.api;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
 import javax.annotation.Nullable;
 
 import com.simibubi.create.api.contraption.train.PortalTrackProvider;
 import com.simibubi.create.api.registry.SimpleRegistry;
-import com.simibubi.create.content.contraptions.glue.SuperGlueEntity;
 
 import net.createmod.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.portal.PortalInfo;
-import net.minecraftforge.common.util.ITeleporter;
 
 /**
  * Shaft version of Create's PortalTrackProvider.
@@ -25,8 +17,8 @@ import net.minecraftforge.common.util.ITeleporter;
  * registered portal-track providers for vanilla Nether portals and compat portals.
  */
 @FunctionalInterface
-public interface PortalShaftProvider {
-	SimpleRegistry<Block, PortalShaftProvider> REGISTRY = SimpleRegistry.create();
+public interface PortalProvider {
+	SimpleRegistry<Block, PortalProvider> REGISTRY = SimpleRegistry.create();
 
 	@Nullable
 	Exit findExit(ServerLevel level, BlockFace face);
@@ -40,7 +32,7 @@ public interface PortalShaftProvider {
 		BlockPos portalPos = inboundShaft.getConnectedPos();
 		BlockState portalState = level.getBlockState(portalPos);
 
-		PortalShaftProvider shaftProvider = REGISTRY.get(portalState);
+		PortalProvider shaftProvider = REGISTRY.get(portalState);
 		if (shaftProvider != null)
 			return shaftProvider.findExit(level, inboundShaft);
 

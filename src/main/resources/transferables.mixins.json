@@ -4,7 +4,7 @@
   "package": "com.reggarf.mods.transferables.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "transferables.refmap.json",
-  "mixins": ["ShaftPortalMixin"
+  "mixins": ["ShaftPortalMixin", "PipePortalMixin"
 
 
   ],

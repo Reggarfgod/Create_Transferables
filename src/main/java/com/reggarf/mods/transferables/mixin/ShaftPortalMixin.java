@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 
-import com.reggarf.mods.transferables.api.PortalShaftAccess;
+import com.reggarf.mods.transferables.api.PortalAccess;
 import com.reggarf.mods.transferables.network.PortalShaftLink;
 
 import net.minecraft.core.BlockPos;
@@ -21,7 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
 
 @Mixin(value = KineticBlockEntity.class, remap = false)
-public abstract class ShaftPortalMixin implements PortalShaftAccess {
+public abstract class ShaftPortalMixin implements PortalAccess {
 
 
     @Shadow @Nullable public Long network;      // network ID (a Long!), null == no network
@@ -90,7 +90,7 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
           create$resolveLink(serverLevel, state);
        }
 
-       PortalShaftAccess partner = create$partner();
+       PortalAccess partner = create$partner();
 
        create$sender = create$computeSender();
        boolean nextReceiver = partner != null && partner.create$isPortalSender() && !create$sender;
@@ -137,12 +137,12 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
     }
 
     @Unique @Nullable
-    private PortalShaftAccess create$partner() {
+    private PortalAccess create$partner() {
        if (create$otherLevel == null || create$otherPos == null)
           return null;
        if (!create$otherLevel.isLoaded(create$otherPos)) // never force-load chunks
           return null;
-       return create$otherLevel.getBlockEntity(create$otherPos) instanceof PortalShaftAccess a ? a : null;
+       return create$otherLevel.getBlockEntity(create$otherPos) instanceof PortalAccess a ? a : null;
     }
 
     @Unique
@@ -160,7 +160,7 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
        }
        if (!create$receiver)
           return; // sender / idle side is a passive shaft, generates nothing
-       PortalShaftAccess partner = create$partner();
+       PortalAccess partner = create$partner();
        cir.setReturnValue(partner == null ? 0f : partner.create$currentSpeed());
     }
 
@@ -194,7 +194,7 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
 
 
     @Unique
-    private void create$syncStressTransfer(@Nullable PortalShaftAccess partner) {
+    private void create$syncStressTransfer(@Nullable PortalAccess partner) {
        KineticBlockEntity self = create$self();
        if (network == null) {
           create$provided = 0f;
@@ -281,7 +281,7 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
        if (!create$receiver)
           return;
 
-       PortalShaftAccess partner = create$partner();
+       PortalAccess partner = create$partner();
        float capSU = partner == null ? 0f : partner.create$exportableSU();
        create$provided = capSU;
        create$lastImportedCapacitySU = capSU;
@@ -296,7 +296,7 @@ public abstract class ShaftPortalMixin implements PortalShaftAccess {
        if (!(create$sender && !create$receiver))
           return;
 
-       PortalShaftAccess partner = create$partner();
+       PortalAccess partner = create$partner();
        float stressSU = partner == null ? 0f : partner.create$localDemand();
        create$lastExportedStressSU = stressSU;
 

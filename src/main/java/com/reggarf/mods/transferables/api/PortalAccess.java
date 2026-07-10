@@ -1,8 +1,6 @@
 package com.reggarf.mods.transferables.api;
 
-import net.minecraft.core.Direction;
-
-public interface PortalShaftAccess {
+public interface PortalAccess {
 	boolean create$isPortalSender();
 	float create$currentSpeed();
 	float create$exportableSU();

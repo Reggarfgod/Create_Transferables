@@ -2,7 +2,7 @@ package com.reggarf.mods.transferables.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.reggarf.mods.transferables.api.PortalShaftProvider;
+import com.reggarf.mods.transferables.api.PortalProvider;
 import com.reggarf.mods.transferables.network.PortalShaftLink;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
@@ -51,7 +51,7 @@ public final class PortalShaftClientEvents {
             for (int y = -VERTICAL_RENDER_RADIUS; y <= VERTICAL_RENDER_RADIUS; y++) {
                 for (int z = -HORIZONTAL_RENDER_RADIUS; z <= HORIZONTAL_RENDER_RADIUS; z++) {
                     mutable.set(cameraPos.getX() + x, cameraPos.getY() + y, cameraPos.getZ() + z);
-                    if (!PortalShaftProvider.isSupportedPortal(level.getBlockState(mutable)))
+                    if (!PortalProvider.isSupportedPortal(level.getBlockState(mutable)))
                         continue;
                     renderPortalBlockShafts(level, mutable.immutable(), camera, poseStack, bufferSource);
                 }

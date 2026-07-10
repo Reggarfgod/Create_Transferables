@@ -1,6 +1,6 @@
 package com.reggarf.mods.transferables.network;
 
-import com.reggarf.mods.transferables.api.PortalShaftProvider;
+import com.reggarf.mods.transferables.api.PortalProvider;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
 import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock;
@@ -21,9 +21,9 @@ public final class PortalShaftLink {
 	public record PortalShaftEndpoint(ServerLevel level, BlockPos shaftPos) {}
 
 	@Nullable
-	public static PortalShaftProvider.Exit resolve(ServerLevel level, BlockPos shaftPos, Direction towardPortal) {
+	public static PortalProvider.Exit resolve(ServerLevel level, BlockPos shaftPos, Direction towardPortal) {
 		BlockFace inbound = new BlockFace(shaftPos, towardPortal);
-		return PortalShaftProvider.getOtherSide(level, inbound);
+		return PortalProvider.getOtherSide(level, inbound);
 	}
 
 	@Nullable
@@ -31,7 +31,7 @@ public final class PortalShaftLink {
 		if (!isShaftOnPortalFace(level, shaftPos, towardPortal))
 			return null;
 
-		PortalShaftProvider.Exit exit = resolve(level, shaftPos, towardPortal);
+		PortalProvider.Exit exit = resolve(level, shaftPos, towardPortal);
 		if (exit == null)
 			return null;
 
@@ -76,7 +76,7 @@ public final class PortalShaftLink {
 			if (!isShaftOnPortalFace(level, shaftPos, dir))
 				continue;
 
-			PortalShaftProvider.Exit back = resolve(level, shaftPos, dir);
+			PortalProvider.Exit back = resolve(level, shaftPos, dir);
 			if (back == null)
 				continue;
 			if (back.level().dimension().equals(expectedLevel.dimension()) && back.face().getPos().equals(expectedShaftPos))
@@ -92,7 +92,7 @@ public final class PortalShaftLink {
 		if (axis == null || axis != towardPortal.getAxis())
 			return false;
 
-		return PortalShaftProvider.isSupportedPortal(level.getBlockState(shaftPos.relative(towardPortal)));
+		return PortalProvider.isSupportedPortal(level.getBlockState(shaftPos.relative(towardPortal)));
 	}
 
 	private static boolean isShaft(ServerLevel level, BlockPos pos) {
