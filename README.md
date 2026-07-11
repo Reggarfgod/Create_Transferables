@@ -1,0 +1,13 @@
+<h1 style="text-align: center;" data-path-to-node="6"><strong data-path-to-node="6" data-index-in-node="0"><span style="color: rgb(185, 106, 217);">Transferables</span></strong></h1>
+<p data-path-to-node="7">I basically made this mod because I got tired of setting up insanely complicated logistics just to get power or lava across dimensions. Transferables does exactly what it sounds like: it lets you transfer stuff directly through portals.</p>
+<p data-path-to-node="8">Right now, it handles two main things: <span style="color: rgb(191, 237, 210);"><strong data-path-to-node="8" data-index-in-node="39">Fluids</strong> and <strong data-path-to-node="8" data-index-in-node="50">Rotational Power</strong></span> <span style="color: rgb(230, 126, 35);">Using Pump and Shaft</span> (perfect if you're using Create).<br><br></p>
+<p data-path-to-node="9"><strong data-path-to-node="9" data-index-in-node="0">What it actually does:</strong></p>
+<ul>
+<li data-path-to-node="10,0,0"><span style="color: rgb(53, 152, 219);"><strong data-path-to-node="10,0,0" data-index-in-node="0">Rotational Power through Portals:</strong></span> Got a massive SteamEngine setup in the Overworld but need that rotational force for a factory in the Nether? Just run a shaft right into the portal. The energy transfers to the linked portal on the other side.</li>
+<li data-path-to-node="10,1,0"><span style="color: rgb(22, 145, 121);"><strong data-path-to-node="10,1,0" data-index-in-node="0">Fluid Bridging:</strong></span> Same deal for liquids. Run a fluid pipe into the portal surface, and your water, lava, or custom fluids will flow right out the corresponding portal in the other dimension.<br><br><br><hr>
+<h1 style="text-align: center;"><a href="https://zap-hosting.com/reggarf" target="_blank" rel="nofollow noopener"><span style="color: #2dc26b;"><strong><img src="https://media.forgecdn.net/attachments/description/1162812/description_b0add901-8e9e-4418-845f-1e65c3f72df1.png" width="762" height="254"></strong></span></a></h1>
+<h1 style="text-align: center;"><span style="color: #2dc26b;"><strong>THANKS TO OUR SPONSORS</strong></span></h1>
+<p style="text-align: center;"><strong>THANKS TO ZAP-HOSTING! Use code Reggarf-1047 for 20% off any order!</strong></p>
+<p style="text-align: center;"><strong><a href="https://www.curseforge.com/linkout?remoteUrl=https://zap-hosting.com/reggarf" target="_blank" rel="nofollow noopener">https://zap-hosting.com/reggarf</a></strong></p>
+</li>
+</ul>
