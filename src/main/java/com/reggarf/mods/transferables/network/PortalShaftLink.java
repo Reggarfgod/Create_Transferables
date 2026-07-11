@@ -2,7 +2,9 @@ package com.reggarf.mods.transferables.network;
 
 import com.reggarf.mods.transferables.api.PortalProvider;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.content.kinetics.simpleRelays.CogWheelBlock;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
+import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedCogwheelBlock;
 import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedShaftBlock;
 import net.createmod.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
@@ -50,26 +52,28 @@ public final class PortalShaftLink {
 
 	public static boolean isPortalShaft(BlockState state) {
 		Block block = state.getBlock();
-		return block instanceof ShaftBlock || block instanceof EncasedShaftBlock;
+		return block instanceof ShaftBlock
+				|| block instanceof EncasedShaftBlock
+				|| block instanceof CogWheelBlock
+				|| block instanceof EncasedCogwheelBlock;
 	}
 
 	@Nullable
 	public static Direction.Axis getPortalShaftAxis(BlockState state) {
 		return isPortalShaft(state) && state.hasProperty(BlockStateProperties.AXIS)
-			? state.getValue(BlockStateProperties.AXIS)
-			: null;
+				? state.getValue(BlockStateProperties.AXIS)
+				: null;
 	}
 
-	private static boolean linksBack(ServerLevel level, BlockPos shaftPos, ServerLevel expectedLevel,
-		BlockPos expectedShaftPos) {
+	private static boolean linksBack(ServerLevel level, BlockPos shaftPos, ServerLevel expectedLevel, BlockPos expectedShaftPos) {
 		BlockState state = level.getBlockState(shaftPos);
 		Direction.Axis axis = getPortalShaftAxis(state);
 		if (axis == null)
 			return false;
 
 		Direction[] ends = {
-			Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE),
-			Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE)
+				Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE),
+				Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE)
 		};
 
 		for (Direction dir : ends) {
@@ -101,5 +105,4 @@ public final class PortalShaftLink {
 		BlockEntity blockEntity = level.getBlockEntity(pos);
 		return blockEntity instanceof KineticBlockEntity;
 	}
-
 }

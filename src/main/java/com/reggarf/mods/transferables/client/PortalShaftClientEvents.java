@@ -98,12 +98,12 @@ public final class PortalShaftClientEvents {
         renderNearestPortalHalf(shaftTowardPortal, poseStack);
 
         MultiBufferSource solidTintedSource = rt -> new TintedVertexConsumer(bufferSource.getBuffer(rt), 170, 50, 255, 255);
-        VertexConsumer solidBuffer = solidTintedSource.getBuffer(RenderType.cutoutMipped());
 
         if (!(shaftState.getBlock() instanceof ShaftBlock)) {
             Minecraft.getInstance().getBlockRenderer().renderSingleBlock(shaftState, poseStack, solidTintedSource, actualLight,
                     OverlayTexture.NO_OVERLAY);
         }
+        VertexConsumer solidBuffer = solidTintedSource.getBuffer(RenderType.cutoutMipped());
         KineticBlockEntityRenderer.renderRotatingKineticBlock(shaft, KineticBlockEntityRenderer.shaft(axis), poseStack,
                 solidBuffer, actualLight);
         poseStack.popPose();

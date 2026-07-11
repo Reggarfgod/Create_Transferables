@@ -122,6 +122,8 @@ dependencies {
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
     implementation("io.github.llamalad7:mixinextras-forge:0.4.1")
     implementation fg.deobf("curse.maven:create-power-loader-936020:6549987")
+    implementation fg.deobf("curse.maven:create-colored-chain-conveyor-1371629:8127873")
+    implementation fg.deobf("curse.maven:create-extra-casing-1192187:6944497")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
