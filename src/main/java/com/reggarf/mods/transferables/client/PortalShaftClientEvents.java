@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.reggarf.mods.transferables.api.PortalProvider;
 import com.reggarf.mods.transferables.network.PortalShaftLink;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
@@ -19,15 +20,15 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.event.RenderLevelStageEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 
 public final class PortalShaftClientEvents {
     private static final int HORIZONTAL_RENDER_RADIUS = 18;
     private static final int VERTICAL_RENDER_RADIUS = 10;
     private static final float HALF_SHAFT_LENGTH = 0.5f;
-    private static final int MAX_LIGHT = 15728880;
 
     private PortalShaftClientEvents() {}
 
@@ -97,27 +98,15 @@ public final class PortalShaftClientEvents {
         poseStack.pushPose();
         renderNearestPortalHalf(shaftTowardPortal, poseStack);
 
-        MultiBufferSource solidTintedSource = rt -> new TintedVertexConsumer(bufferSource.getBuffer(rt), 170, 50, 255, 255);
+        BlockState renderedState = AllBlocks.SHAFT.getDefaultState().setValue(BlockStateProperties.AXIS, axis);
 
         if (!(shaftState.getBlock() instanceof ShaftBlock)) {
-            Minecraft.getInstance().getBlockRenderer().renderSingleBlock(shaftState, poseStack, solidTintedSource, actualLight,
+            Minecraft.getInstance().getBlockRenderer().renderSingleBlock(shaftState, poseStack, bufferSource, actualLight,
                     OverlayTexture.NO_OVERLAY);
         }
-        VertexConsumer solidBuffer = solidTintedSource.getBuffer(RenderType.cutoutMipped());
-        KineticBlockEntityRenderer.renderRotatingKineticBlock(shaft, KineticBlockEntityRenderer.shaft(axis), poseStack,
+        VertexConsumer solidBuffer = bufferSource.getBuffer(RenderType.solid());
+        KineticBlockEntityRenderer.renderRotatingKineticBlock(shaft, renderedState, poseStack,
                 solidBuffer, actualLight);
-        poseStack.popPose();
-
-        poseStack.pushPose();
-        renderNearestPortalHalf(shaftTowardPortal, poseStack);
-        poseStack.translate(0.5, 0.5, 0.5);
-        poseStack.scale(1.2f, 1.2f, 1.2f);
-        poseStack.translate(-0.5, -0.5, -0.5);
-        VertexConsumer auraBuffer = bufferSource.getBuffer(RenderType.translucent());
-        VertexConsumer tintedAuraBuffer = new TintedVertexConsumer(auraBuffer, 210, 100, 255, 80);
-        KineticBlockEntityRenderer.renderRotatingKineticBlock(shaft, KineticBlockEntityRenderer.shaft(axis), poseStack,
-                tintedAuraBuffer, MAX_LIGHT);
-
         poseStack.popPose();
 
         poseStack.popPose();
@@ -139,69 +128,6 @@ public final class PortalShaftClientEvents {
                 poseStack.translate(0, 0, offset);
                 poseStack.scale(1, 1, length);
             }
-        }
-    }
-    private static class TintedVertexConsumer implements VertexConsumer {
-        private final VertexConsumer delegate;
-        private final int tintR, tintG, tintB, tintA;
-
-        public TintedVertexConsumer(VertexConsumer delegate, int r, int g, int b, int a) {
-            this.delegate = delegate;
-            this.tintR = r;
-            this.tintG = g;
-            this.tintB = b;
-            this.tintA = a;
-        }
-
-        @Override
-        public VertexConsumer vertex(double x, double y, double z) {
-            delegate.vertex(x, y, z);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer color(int r, int g, int b, int a) {
-            delegate.color((r * tintR) / 255, (g * tintG) / 255, (b * tintB) / 255, (a * tintA) / 255);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer uv(float u, float v) {
-            delegate.uv(u, v);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer overlayCoords(int u, int v) {
-            delegate.overlayCoords(u, v);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer uv2(int u, int v) {
-            delegate.uv2(u, v);
-            return this;
-        }
-
-        @Override
-        public VertexConsumer normal(float x, float y, float z) {
-            delegate.normal(x, y, z);
-            return this;
-        }
-
-        @Override
-        public void endVertex() {
-            delegate.endVertex();
-        }
-
-        @Override
-        public void defaultColor(int r, int g, int b, int a) {
-            delegate.defaultColor((r * tintR) / 255, (g * tintG) / 255, (b * tintB) / 255, (a * tintA) / 255);
-        }
-
-        @Override
-        public void unsetDefaultColor() {
-            delegate.unsetDefaultColor();
         }
     }
 }

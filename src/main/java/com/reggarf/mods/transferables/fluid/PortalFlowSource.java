@@ -2,15 +2,17 @@ package com.reggarf.mods.transferables.fluid;
 
 import com.reggarf.mods.transferables.network.PortalFluidLink;
 import com.simibubi.create.content.fluids.FlowSource;
+import com.simibubi.create.foundation.ICapabilityProvider;
 
 import net.createmod.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+
 
 /**
  * A pipe endpoint that bridges across a portal. Its handler is the shared bridge tank, so Create's
@@ -22,7 +24,7 @@ public class PortalFlowSource extends FlowSource {
 	private final BlockPos selfPos;
 	private final Direction portalDir;
 
-	private LazyOptional<IFluidHandler> handler = LazyOptional.empty();
+	private ICapabilityProvider<IFluidHandler> handler;
 	private FluidTank currentBuffer;
 	private long lastResolveTick = Long.MIN_VALUE;
 
@@ -38,12 +40,12 @@ public class PortalFlowSource extends FlowSource {
 	}
 
 	@Override
-	public void manageSource(Level world) {
+	public void manageSource(Level world, BlockEntity networkBE) {
 		if (!(world instanceof ServerLevel level)) {
 			cut();
 			return;
 		}
-		if (handler.isPresent() && world.getGameTime() - lastResolveTick < 20)
+		if (handler != null && world.getGameTime() - lastResolveTick < 20)
 			return;
 		lastResolveTick = world.getGameTime();
 
@@ -57,21 +59,17 @@ public class PortalFlowSource extends FlowSource {
 		if (buffer != currentBuffer) {
 			cut();
 			currentBuffer = buffer;
-			handler = LazyOptional.of(() -> buffer);
+			handler = ICapabilityProvider.of(() -> buffer);
 		}
 	}
 
 	@Override
-	public LazyOptional<IFluidHandler> provideHandler() {
+	public ICapabilityProvider<IFluidHandler> provideHandler() {
 		return handler;
 	}
 
 	private void cut() {
 		currentBuffer = null;
-		if (handler.isPresent()) {
-			LazyOptional<IFluidHandler> old = handler;
-			handler = LazyOptional.empty();
-			old.invalidate();
-		}
+		handler = null;
 	}
 }
