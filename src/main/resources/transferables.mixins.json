@@ -2,14 +2,16 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.reggarf.mods.transferables.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_17",
   "refmap": "transferables.refmap.json",
-  "mixins": ["ShaftPortalMixin", "PipePortalMixin"
-
-
+  "mixins": [
+    "ShaftPortalMixin",
+    "FluidPipePortalMixin",
+    "PipePortalMixin",
+    "PortalPumpEndpointMixin"
   ],
   "client": [
-
+    "client.KineticRenderPortalMixin"
   ],
   "injectors": {
     "defaultRequire": 1

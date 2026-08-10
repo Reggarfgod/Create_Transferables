@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import com.reggarf.mods.transferables.api.PortalProvider;
 import com.simibubi.create.content.fluids.FluidTransportBehaviour;
+import com.simibubi.create.content.fluids.pump.PumpBlock;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 
 import net.createmod.catnip.data.Iterate;
@@ -13,64 +14,69 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
-/** Fluid-pipe counterpart to PortalShaftLink: finds the pipe on the far side of a portal. */
+/** Mechanical-pump counterpart to {@link PortalShaftLink}. */
 public final class PortalFluidLink {
 	private PortalFluidLink() {}
 
-	public record PipeEndpoint(ResourceKey<Level> dim, BlockPos pos) {}
+	public record PumpEndpoint(ResourceKey<Level> dim, BlockPos pos) {}
 
 	@Nullable
-	public static PipeEndpoint resolvePipe(ServerLevel level, BlockPos pipePos, Direction towardPortal) {
-		if (!isPipeOnPortalFace(level, pipePos, towardPortal))
+	public static PumpEndpoint resolvePump(ServerLevel level, BlockPos pumpPos, Direction towardPortal) {
+		if (!isPumpOnPortalFace(level, pumpPos, towardPortal))
 			return null;
 
-		PortalProvider.Exit exit =
-			PortalProvider.getOtherSide(level, new BlockFace(pipePos, towardPortal));
+		PortalProvider.Exit exit = PortalProvider.getOtherSide(level, new BlockFace(pumpPos, towardPortal));
 		if (exit == null)
 			return null;
 
 		ServerLevel otherLevel = exit.level();
-		BlockPos otherPos = exit.face()
-			.getPos();
+		BlockPos otherPos = exit.face().getPos();
 		if (!otherLevel.isLoaded(otherPos))
 			return null;
-		if (!isLinkedPipe(otherLevel, otherPos))
+		if (!isLinkedPump(otherLevel, otherPos))
 			return null;
-		if (!linksBack(otherLevel, otherPos, level, pipePos))
+		if (!linksBack(otherLevel, otherPos, level, pumpPos))
 			return null;
 
-		return new PipeEndpoint(otherLevel.dimension(), otherPos);
+		return new PumpEndpoint(otherLevel.dimension(), otherPos);
 	}
 
-	/** True if there's any Create fluid pipe here (used to validate the partner is still a pipe). */
-	public static boolean isLinkedPipe(ServerLevel level, BlockPos pos) {
-		return BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE) != null;
+	public static boolean isPumpFacingPortal(ServerLevel level, BlockPos pumpPos, Direction towardPortal) {
+		return isPumpOnPortalFace(level, pumpPos, towardPortal);
 	}
 
-	private static boolean isPipeOnPortalFace(ServerLevel level, BlockPos pos, Direction towardPortal) {
-		FluidTransportBehaviour pipe = BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE);
-		if (pipe == null)
+	public static boolean isPortalPump(BlockState state) {
+		return PumpBlock.isPump(state);
+	}
+
+	public static boolean isLinkedPump(ServerLevel level, BlockPos pos) {
+		return isPortalPump(level.getBlockState(pos))
+				&& BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE) != null;
+	}
+
+	private static boolean isPumpOnPortalFace(ServerLevel level, BlockPos pos, Direction towardPortal) {
+		if (!isPortalPump(level.getBlockState(pos)))
 			return false;
-		if (!pipe.canHaveFlowToward(level.getBlockState(pos), towardPortal))
-			return false; // face isn't an open pipe end (true for straight/glass pipes along their axis)
+		FluidTransportBehaviour pump = BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE);
+		if (pump == null)
+			return false;
+		if (!pump.canHaveFlowToward(level.getBlockState(pos), towardPortal))
+			return false;
 		return PortalProvider.isSupportedPortal(level.getBlockState(pos.relative(towardPortal)));
 	}
 
-	private static boolean linksBack(ServerLevel level, BlockPos pipePos, ServerLevel expectedLevel,
-		BlockPos expectedPos) {
+	private static boolean linksBack(ServerLevel level, BlockPos pumpPos, ServerLevel expectedLevel,
+	                                   BlockPos expectedPos) {
 		for (Direction dir : Iterate.directions) {
-			if (!isPipeOnPortalFace(level, pipePos, dir))
+			if (!isPumpOnPortalFace(level, pumpPos, dir))
 				continue;
-			PortalProvider.Exit back = PortalProvider.getOtherSide(level, new BlockFace(pipePos, dir));
+			PortalProvider.Exit back = PortalProvider.getOtherSide(level, new BlockFace(pumpPos, dir));
 			if (back == null)
 				continue;
-			if (back.level()
-				.dimension()
-				.equals(expectedLevel.dimension())
-				&& back.face()
-					.getPos()
-					.equals(expectedPos))
+			if (back.level().dimension().equals(expectedLevel.dimension())
+					&& back.face().getPos().equals(expectedPos))
 				return true;
 		}
 		return false;

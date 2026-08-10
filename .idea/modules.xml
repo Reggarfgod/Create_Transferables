@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.reggarf.mods.transferables.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.reggarf.mods.transferables.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.reggarf.mods.transferables.main~1.iml" filepath="$PROJECT_DIR$/.idea/modules/com.reggarf.mods.transferables.main~1.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.reggarf.mods.transferables.test.iml" filepath="$PROJECT_DIR$/.idea/modules/com.reggarf.mods.transferables.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.reggarf.mods.transferables.test~1.iml" filepath="$PROJECT_DIR$/.idea/modules/com.reggarf.mods.transferables.test~1.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/transferables.iml" filepath="$PROJECT_DIR$/.idea/modules/transferables.iml" />
     </modules>
   </component>

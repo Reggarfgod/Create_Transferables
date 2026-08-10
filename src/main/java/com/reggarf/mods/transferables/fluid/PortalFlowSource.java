@@ -2,7 +2,12 @@ package com.reggarf.mods.transferables.fluid;
 
 import com.reggarf.mods.transferables.network.PortalFluidLink;
 import com.simibubi.create.content.fluids.FlowSource;
+import com.simibubi.create.content.fluids.FluidTransportBehaviour;
+import com.simibubi.create.content.fluids.PipeConnection;
+import com.simibubi.create.content.fluids.pump.PumpBlock;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 
+import net.createmod.catnip.data.Couple;
 import net.createmod.catnip.math.BlockFace;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,9 +18,7 @@ import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 /**
- * A pipe endpoint that bridges across a portal. Its handler is the shared bridge tank, so Create's
- * FluidNetwork fills it (when this side pushes) or drains it (when this side pulls). Resolves the
- * partner lazily every 20 ticks, so it also works if the far pipe is placed later.
+ * Pump endpoint that bridges across a portal through a shared buffer tank.
  */
 public class PortalFlowSource extends FlowSource {
 
@@ -43,11 +46,15 @@ public class PortalFlowSource extends FlowSource {
 			cut();
 			return;
 		}
+		if (!PumpBlock.isPump(level.getBlockState(selfPos))) {
+			cut();
+			return;
+		}
 		if (handler.isPresent() && world.getGameTime() - lastResolveTick < 20)
 			return;
 		lastResolveTick = world.getGameTime();
 
-		PortalFluidLink.PipeEndpoint partner = PortalFluidLink.resolvePipe(level, selfPos, portalDir);
+		PortalFluidLink.PumpEndpoint partner = PortalFluidLink.resolvePump(level, selfPos, portalDir);
 		if (partner == null) {
 			cut();
 			return;
@@ -59,6 +66,23 @@ public class PortalFlowSource extends FlowSource {
 			currentBuffer = buffer;
 			handler = LazyOptional.of(() -> buffer);
 		}
+
+		applyReceivePressure(level);
+	}
+
+	private void applyReceivePressure(ServerLevel level) {
+		if (currentBuffer == null || currentBuffer.isEmpty())
+			return;
+		FluidTransportBehaviour pump = BlockEntityBehaviour.get(level, selfPos, FluidTransportBehaviour.TYPE);
+		if (pump == null)
+			return;
+		PipeConnection conn = pump.getConnection(portalDir);
+		if (conn == null)
+			return;
+		Couple<Float> pressure = conn.getPressure();
+		if (pressure.getFirst() > 0 || pressure.getSecond() > 0)
+			return;
+		pump.addPressure(portalDir, true, 32f);
 	}
 
 	@Override

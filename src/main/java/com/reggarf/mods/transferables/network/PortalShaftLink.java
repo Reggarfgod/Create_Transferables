@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 public final class PortalShaftLink {
 	private PortalShaftLink() {}
 
-	public record PortalShaftEndpoint(ServerLevel level, BlockPos shaftPos) {}
+	public record PortalShaftEndpoint(ServerLevel level, BlockPos shaftPos, Direction towardPortal) {}
 
 	@Nullable
 	public static PortalProvider.Exit resolve(ServerLevel level, BlockPos shaftPos, Direction towardPortal) {
@@ -46,7 +46,13 @@ public final class PortalShaftLink {
 		if (!linksBack(otherLevel, otherShaftPos, level, shaftPos))
 			return null;
 
-		return new PortalShaftEndpoint(otherLevel, otherShaftPos);
+		Direction otherTowardPortal = exit.face().getFace();
+		return new PortalShaftEndpoint(otherLevel, otherShaftPos, otherTowardPortal);
+	}
+
+
+	public static boolean isShaftFacingPortal(ServerLevel level, BlockPos shaftPos, Direction towardPortal) {
+		return isShaftOnPortalFace(level, shaftPos, towardPortal);
 	}
 
 

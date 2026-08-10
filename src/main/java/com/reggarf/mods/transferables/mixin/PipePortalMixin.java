@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.reggarf.mods.transferables.api.PortalProvider;
 import com.reggarf.mods.transferables.fluid.PortalFlowSource;
+import com.reggarf.mods.transferables.network.PortalFluidLink;
 import com.simibubi.create.content.fluids.FlowSource;
 import com.simibubi.create.content.fluids.PipeConnection;
 
@@ -21,18 +22,18 @@ import net.minecraft.world.level.Level;
 @Mixin(value = PipeConnection.class, remap = false)
 public abstract class PipePortalMixin {
 
-    @Shadow public Direction side;
-    @Shadow Optional<FlowSource> source;
+	@Shadow public Direction side;
+	@Shadow Optional<FlowSource> source;
 
-    @Inject(method = "determineSource", at = @At("HEAD"), cancellable = true)
-    private void transferables$portalSource(Level world, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
-        if (!(world instanceof ServerLevel)) // server drives the transfer; client keeps vanilla determination
-            return;
-        if (!PortalProvider.isSupportedPortal(world.getBlockState(pos.relative(side))))
-            return;
-        // Bridge the portal-facing end. The source resolves its partner + shared buffer lazily,
-        // so this also handles the far pipe being built afterwards.
-        source = Optional.of(new PortalFlowSource(pos, side));
-        cir.setReturnValue(true);
-    }
+	@Inject(method = "determineSource", at = @At("HEAD"), cancellable = true)
+	private void transferables$portalSource(Level world, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
+		if (!(world instanceof ServerLevel))
+			return;
+		if (!PortalFluidLink.isPortalPump(world.getBlockState(pos)))
+			return;
+		if (!PortalProvider.isSupportedPortal(world.getBlockState(pos.relative(side))))
+			return;
+		source = Optional.of(new PortalFlowSource(pos, side));
+		cir.setReturnValue(true);
+	}
 }
