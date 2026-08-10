@@ -5,13 +5,13 @@
   "compatibilityLevel": "JAVA_17",
   "refmap": "transferables.refmap.json",
   "mixins": [
-    "ShaftPortalMixin",
-    "FluidPipePortalMixin",
-    "PipePortalMixin",
-    "PortalPumpEndpointMixin"
+    "KineticBlockEntityMixin",
+    "FluidTransportBehaviourMixin",
+    "PipeConnectionMixin",
+    "PumpBlockEntityMixin"
   ],
   "client": [
-    "client.KineticRenderPortalMixin"
+    "client.KineticBlockEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -9,8 +9,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.reggarf.mods.transferables.api.PortalProvider;
-import com.reggarf.mods.transferables.fluid.PortalFlowSource;
-import com.reggarf.mods.transferables.network.PortalFluidLink;
+import com.reggarf.mods.transferables.content.fluids.portal.PortalFlowSource;
+import com.reggarf.mods.transferables.content.fluids.portal.PortalFluidLink;
 import com.simibubi.create.content.fluids.FlowSource;
 import com.simibubi.create.content.fluids.PipeConnection;
 
@@ -20,7 +20,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 @Mixin(value = PipeConnection.class, remap = false)
-public abstract class PipePortalMixin {
+public abstract class PipeConnectionMixin {
 
 	@Shadow public Direction side;
 	@Shadow Optional<FlowSource> source;

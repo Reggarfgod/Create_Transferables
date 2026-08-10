@@ -1,8 +1,7 @@
-package com.reggarf.mods.transferables.portal;
+package com.reggarf.mods.transferables.content.kinetics.portal;
 
 import com.reggarf.mods.transferables.api.PortalAccess;
 import com.reggarf.mods.transferables.api.PortalProvider;
-import com.reggarf.mods.transferables.network.PortalShaftLink;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.createmod.catnip.data.Iterate;
 import net.createmod.catnip.math.BlockFace;
@@ -27,7 +26,7 @@ import java.util.Set;
 import com.google.common.base.Predicates;
 
 /**
- * Mirrors {@code TrackBlock.connectToPortal}: when a shaft is placed facing a portal it
+ * Mirrors Create's {@code TrackBlock.connectToPortal}: when a shaft is placed facing a portal it
  * auto-places the exit shaft, binds both ends, and links kinetic networks across dimensions.
  */
 public final class PortalShaftBinding {
@@ -37,7 +36,6 @@ public final class PortalShaftBinding {
 
 	public record Binding(ResourceKey<Level> dimension, BlockPos pos) {}
 
-	/** Called after placement or when neighbors change — same role as {@code TrackBlock.tick}. */
 	public static void connectToPortal(KineticBlockEntity shaft, ServerLevel level) {
 		BlockState state = shaft.getBlockState();
 		Direction.Axis axis = PortalShaftLink.getPortalShaftAxis(state);

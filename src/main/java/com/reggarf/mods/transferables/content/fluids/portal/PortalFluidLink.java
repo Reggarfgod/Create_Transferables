@@ -1,4 +1,4 @@
-package com.reggarf.mods.transferables.network;
+package com.reggarf.mods.transferables.content.fluids.portal;
 
 import javax.annotation.Nullable;
 
@@ -16,7 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** Mechanical-pump counterpart to {@link PortalShaftLink}. */
+/** Mechanical-pump counterpart to {@link com.reggarf.mods.transferables.content.kinetics.portal.PortalShaftLink}. */
 public final class PortalFluidLink {
 	private PortalFluidLink() {}
 
@@ -24,7 +24,7 @@ public final class PortalFluidLink {
 
 	@Nullable
 	public static PumpEndpoint resolvePump(ServerLevel level, BlockPos pumpPos, Direction towardPortal) {
-		if (!isPumpOnPortalFace(level, pumpPos, towardPortal))
+		if (!isPumpFacingPortal(level, pumpPos, towardPortal))
 			return null;
 
 		PortalProvider.Exit exit = PortalProvider.getOtherSide(level, new BlockFace(pumpPos, towardPortal));
@@ -44,7 +44,14 @@ public final class PortalFluidLink {
 	}
 
 	public static boolean isPumpFacingPortal(ServerLevel level, BlockPos pumpPos, Direction towardPortal) {
-		return isPumpOnPortalFace(level, pumpPos, towardPortal);
+		if (!isPortalPump(level.getBlockState(pumpPos)))
+			return false;
+		FluidTransportBehaviour pump = BlockEntityBehaviour.get(level, pumpPos, FluidTransportBehaviour.TYPE);
+		if (pump == null)
+			return false;
+		if (!pump.canHaveFlowToward(level.getBlockState(pumpPos), towardPortal))
+			return false;
+		return PortalProvider.isSupportedPortal(level.getBlockState(pumpPos.relative(towardPortal)));
 	}
 
 	public static boolean isPortalPump(BlockState state) {
@@ -56,21 +63,10 @@ public final class PortalFluidLink {
 				&& BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE) != null;
 	}
 
-	private static boolean isPumpOnPortalFace(ServerLevel level, BlockPos pos, Direction towardPortal) {
-		if (!isPortalPump(level.getBlockState(pos)))
-			return false;
-		FluidTransportBehaviour pump = BlockEntityBehaviour.get(level, pos, FluidTransportBehaviour.TYPE);
-		if (pump == null)
-			return false;
-		if (!pump.canHaveFlowToward(level.getBlockState(pos), towardPortal))
-			return false;
-		return PortalProvider.isSupportedPortal(level.getBlockState(pos.relative(towardPortal)));
-	}
-
 	private static boolean linksBack(ServerLevel level, BlockPos pumpPos, ServerLevel expectedLevel,
 	                                   BlockPos expectedPos) {
 		for (Direction dir : Iterate.directions) {
-			if (!isPumpOnPortalFace(level, pumpPos, dir))
+			if (!isPumpFacingPortal(level, pumpPos, dir))
 				continue;
 			PortalProvider.Exit back = PortalProvider.getOtherSide(level, new BlockFace(pumpPos, dir));
 			if (back == null)

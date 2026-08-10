@@ -1,4 +1,4 @@
-package com.reggarf.mods.transferables.fluid;
+package com.reggarf.mods.transferables.content.fluids.portal;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -39,13 +39,10 @@ public final class PortalFluidBridges {
 
 	private static void sweep() {
 		long now = System.currentTimeMillis();
-		for (Iterator<Map.Entry<Key, Bridge>> it = BRIDGES.entrySet()
-			.iterator(); it.hasNext();) {
-			Bridge b = it.next()
-				.getValue();
+		for (Iterator<Map.Entry<Key, Bridge>> it = BRIDGES.entrySet().iterator(); it.hasNext();) {
+			Bridge b = it.next().getValue();
 			if (now - b.lastAccess > TTL_MILLIS && b.tank.isEmpty())
 				it.remove();
 		}
 	}
 }
-

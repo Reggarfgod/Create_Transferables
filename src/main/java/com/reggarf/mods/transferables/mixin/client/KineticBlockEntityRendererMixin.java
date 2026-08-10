@@ -8,19 +8,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.reggarf.mods.transferables.api.PortalAccess;
-import com.reggarf.mods.transferables.network.PortalShaftLink;
-import com.reggarf.mods.transferables.portal.PortalExtensionMath;
+import com.reggarf.mods.transferables.content.kinetics.portal.PortalExtensionMath;
+import com.reggarf.mods.transferables.content.kinetics.portal.PortalShaftLink;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.Direction;
 
-/**
- * Clips the real kinetic block renderer when a shaft is portal-connected (Flywheel off).
- */
+/** Clips the real kinetic block renderer when a shaft is portal-connected (Flywheel off). */
 @Mixin(value = KineticBlockEntityRenderer.class, remap = false)
-public abstract class KineticRenderPortalMixin<T extends KineticBlockEntity> {
+public abstract class KineticBlockEntityRendererMixin<T extends KineticBlockEntity> {
 
 	@Unique
 	private static final ThreadLocal<Boolean> transferables$portalClipActive = ThreadLocal.withInitial(() -> false);

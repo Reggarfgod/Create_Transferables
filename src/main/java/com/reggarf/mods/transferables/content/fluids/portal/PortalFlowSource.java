@@ -1,6 +1,5 @@
-package com.reggarf.mods.transferables.fluid;
+package com.reggarf.mods.transferables.content.fluids.portal;
 
-import com.reggarf.mods.transferables.network.PortalFluidLink;
 import com.simibubi.create.content.fluids.FlowSource;
 import com.simibubi.create.content.fluids.FluidTransportBehaviour;
 import com.simibubi.create.content.fluids.PipeConnection;
@@ -17,9 +16,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 
-/**
- * Pump endpoint that bridges across a portal through a shared buffer tank.
- */
+/** Pump endpoint that bridges across a portal through a shared buffer tank. */
 public class PortalFlowSource extends FlowSource {
 
 	private final BlockPos selfPos;

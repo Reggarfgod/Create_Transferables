@@ -9,9 +9,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.reggarf.mods.transferables.api.PortalPumpAccess;
-import com.reggarf.mods.transferables.network.PortalFluidLink;
-import com.reggarf.mods.transferables.portal.PortalFluidBinding;
-import com.reggarf.mods.transferables.portal.PortalShaftBinding;
+import com.reggarf.mods.transferables.content.fluids.portal.PortalFluidBinding;
+import com.reggarf.mods.transferables.content.fluids.portal.PortalFluidLink;
+import com.reggarf.mods.transferables.content.kinetics.portal.PortalShaftBinding;
 import com.simibubi.create.content.fluids.FluidTransportBehaviour;
 
 import net.minecraft.core.BlockPos;
@@ -23,7 +23,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 
 @Mixin(value = FluidTransportBehaviour.class, remap = false)
-public abstract class FluidPipePortalMixin implements PortalPumpAccess {
+public abstract class FluidTransportBehaviourMixin implements PortalPumpAccess {
 
 	@Unique private int transferables$pumpCooldown = 0;
 	@Unique private boolean transferables$pumpPortalConnected = false;

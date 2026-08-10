@@ -1,8 +1,7 @@
-package com.reggarf.mods.transferables.portal;
+package com.reggarf.mods.transferables.content.fluids.portal;
 
 import com.reggarf.mods.transferables.Transferables;
 import com.reggarf.mods.transferables.api.PortalPumpAccess;
-import com.reggarf.mods.transferables.network.PortalFluidLink;
 import com.simibubi.create.content.fluids.FluidTransportBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.server.level.ServerLevel;
@@ -12,7 +11,7 @@ import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-/** Portal pump lifecycle — mirrors {@link PortalShaftEvents}. */
+/** Portal pump lifecycle — mirrors {@link com.reggarf.mods.transferables.content.kinetics.portal.PortalShaftEvents}. */
 @Mod.EventBusSubscriber(modid = Transferables.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class PortalFluidEvents {
 	private PortalFluidEvents() {}

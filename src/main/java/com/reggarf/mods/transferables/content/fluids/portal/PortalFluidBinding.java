@@ -1,8 +1,8 @@
-package com.reggarf.mods.transferables.portal;
+package com.reggarf.mods.transferables.content.fluids.portal;
 
 import com.reggarf.mods.transferables.api.PortalPumpAccess;
 import com.reggarf.mods.transferables.api.PortalProvider;
-import com.reggarf.mods.transferables.network.PortalFluidLink;
+import com.reggarf.mods.transferables.content.kinetics.portal.PortalShaftBinding;
 import com.simibubi.create.content.fluids.FluidPropagator;
 import com.simibubi.create.content.fluids.FluidTransportBehaviour;
 import com.simibubi.create.content.fluids.pump.PumpBlock;
@@ -28,7 +28,7 @@ import com.google.common.base.Predicates;
 
 /**
  * Mirrors {@link PortalShaftBinding}: portal-facing mechanical pumps auto-place an exit pump,
- * bind both ends, and share fluid through {@link com.reggarf.mods.transferables.fluid.PortalFluidBridges}.
+ * bind both ends, and share fluid through {@link PortalFluidBridges}.
  */
 public final class PortalFluidBinding {
 	private static final Set<GlobalPos> CASCADING_BREAKS = new HashSet<>();

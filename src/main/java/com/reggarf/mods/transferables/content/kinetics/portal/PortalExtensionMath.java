@@ -1,11 +1,9 @@
-package com.reggarf.mods.transferables.portal;
+package com.reggarf.mods.transferables.content.kinetics.portal;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.core.Direction;
 
-/**
- * Clips kinetic models to a short half-shaft segment extending from the block face toward the portal.
- */
+/** Clips kinetic models to a short half-shaft segment extending from the block face toward the portal. */
 public final class PortalExtensionMath {
 	public static final float PORTAL_STUB_LENGTH = 0.5f;
 

@@ -1,8 +1,8 @@
-package com.reggarf.mods.transferables.client.portal;
+package com.reggarf.mods.transferables.client;
 
-import com.reggarf.mods.transferables.api.PortalProvider;
-import com.reggarf.mods.transferables.api.PortalPumpAccess;
-import com.simibubi.create.content.fluids.pump.PumpBlock;
+import com.reggarf.mods.transferables.api.PortalAccess;
+import com.reggarf.mods.transferables.content.kinetics.portal.PortalShaftLink;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.trains.CubeParticleData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -15,15 +15,13 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
-/**
- * Spawns subtle portal particles on bound pumps, matching {@link PortalShaftClient}.
- */
+/** Spawns subtle portal particles on bound shafts, matching Create's portal track {@code animateTick}. */
 @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public final class PortalPumpClient {
+public final class PortalShaftClient {
 	private static final int PARTICLE_RADIUS = 16;
 	private static int tickCounter;
 
-	private PortalPumpClient() {}
+	private PortalShaftClient() {}
 
 	@SubscribeEvent
 	public static void onClientTick(TickEvent.ClientTickEvent event) {
@@ -47,17 +45,16 @@ public final class PortalPumpClient {
 				for (int z = -PARTICLE_RADIUS; z <= PARTICLE_RADIUS; z++) {
 					mutable.set(center.getX() + x, center.getY() + y, center.getZ() + z);
 					BlockState state = level.getBlockState(mutable);
-					if (!PumpBlock.isPump(state))
+					if (PortalShaftLink.getPortalShaftAxis(state) == null)
 						continue;
 
-					if (!(level.getBlockEntity(mutable) instanceof PortalPumpAccess access)
-							|| !access.transferables$isPumpPortalConnected())
+					if (!(level.getBlockEntity(mutable) instanceof KineticBlockEntity shaft))
+						continue;
+					if (!(shaft instanceof PortalAccess access) || !access.transferables$isPortalConnected())
 						continue;
 
-					Direction towardPortal = access.transferables$getPumpPortalDirection();
+					Direction towardPortal = access.transferables$getPortalDirection();
 					if (towardPortal == null)
-						continue;
-					if (!PortalProvider.isSupportedPortal(level.getBlockState(mutable.relative(towardPortal))))
 						continue;
 
 					double px = mutable.getX() + 0.5 + towardPortal.getStepX() * 0.45 + (random.nextDouble() - 0.5) * 0.2;

@@ -1,8 +1,7 @@
-package com.reggarf.mods.transferables.portal;
+package com.reggarf.mods.transferables.content.kinetics.portal;
 
 import com.reggarf.mods.transferables.Transferables;
 import com.reggarf.mods.transferables.api.PortalAccess;
-import com.reggarf.mods.transferables.network.PortalShaftLink;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -12,7 +11,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 /**
- * Portal shaft lifecycle — mirrors {@code TrackBlock} placement tick and {@code updateShape} validation.
+ * Portal shaft lifecycle — mirrors Create's {@code TrackBlock} placement tick and {@code updateShape} validation.
  */
 @Mod.EventBusSubscriber(modid = Transferables.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class PortalShaftEvents {

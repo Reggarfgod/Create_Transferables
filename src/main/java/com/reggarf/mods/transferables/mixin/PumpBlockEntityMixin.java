@@ -21,7 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * must count as endpoints too or pressure never reaches the bridge.
  */
 @Mixin(value = PumpBlockEntity.class, remap = false)
-public abstract class PortalPumpEndpointMixin {
+public abstract class PumpBlockEntityMixin {
 
 	@Inject(method = "hasReachedValidEndpoint", at = @At("HEAD"), cancellable = true)
 	private void transferables$portalPumpEndpoint(LevelAccessor world, BlockFace blockFace, boolean pull,

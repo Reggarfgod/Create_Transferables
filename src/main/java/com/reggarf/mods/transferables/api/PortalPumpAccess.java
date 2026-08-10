@@ -1,6 +1,6 @@
 package com.reggarf.mods.transferables.api;
 
-import com.reggarf.mods.transferables.portal.PortalShaftBinding;
+import com.reggarf.mods.transferables.content.kinetics.portal.PortalShaftBinding;
 import net.minecraft.core.Direction;
 
 import javax.annotation.Nullable;
