@@ -2,13 +2,16 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.reggarf.mods.transferables.mixin",
-  "compatibilityLevel": "JAVA_8",
+  "compatibilityLevel": "JAVA_21",
   "refmap": "transferables.refmap.json",
-  "mixins": ["ShaftPortalMixin", "PipePortalMixin"
-
-
+  "mixins": [
+    "KineticBlockEntityMixin",
+    "FluidTransportBehaviourMixin",
+    "PipeConnectionMixin",
+    "PumpBlockEntityMixin"
   ],
   "client": [
+    "client.KineticBlockEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

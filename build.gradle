@@ -128,8 +128,6 @@ dependencies {
     runtimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}")
     implementation "curse.maven:better-library-1150683:7354396"
     annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
-
-
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
