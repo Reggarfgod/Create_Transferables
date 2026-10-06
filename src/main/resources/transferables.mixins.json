@@ -7,11 +7,15 @@
   "mixins": [
     "KineticBlockEntityMixin",
     "FluidTransportBehaviourMixin",
+    "PipeConnectionAccessor",
     "PipeConnectionMixin",
     "PumpBlockEntityMixin"
   ],
   "client": [
-    "client.KineticBlockEntityRendererMixin"
+    "client.AbstractVisualAccessor",
+    "client.AbstractBlockEntityVisualAccessor",
+    "client.SingleAxisRotatingVisualMixin",
+    "client.EncasedCogVisualMixin"
   ],
   "injectors": {
     "defaultRequire": 1

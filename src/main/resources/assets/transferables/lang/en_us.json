@@ -1,0 +1,8 @@
+{
+  "transferables.portal_shaft.failed": "Portal shaft link failed",
+  "transferables.portal_shaft.missing": "No matching shaft found on the other side",
+  "transferables.portal_shaft.blocked": "Exit blocked at %s, %s, %s",
+  "transferables.portal_pump.failed": "Portal pump link failed",
+  "transferables.portal_pump.missing": "No matching pump found on the other side",
+  "transferables.portal_pump.blocked": "Exit blocked at %s, %s, %s"
+}

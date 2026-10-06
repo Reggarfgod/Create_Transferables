@@ -1,11 +1,10 @@
 package com.reggarf.mods.transferables.api;
 
-import com.reggarf.mods.transferables.content.kinetics.portal.PortalShaftBinding;
-import net.minecraft.core.Direction;
-
 import javax.annotation.Nullable;
 
-/** Cross-dimension portal shaft state stored on {@link com.simibubi.create.content.kinetics.base.KineticBlockEntity}. */
+import net.minecraft.core.Direction;
+
+/** Cross-dimension portal shaft state stored on Create kinetic block entities. */
 public interface PortalAccess {
 	boolean create$isPortalSender();
 
@@ -21,11 +20,9 @@ public interface PortalAccess {
 	Direction transferables$getPortalDirection();
 
 	@Nullable
-	PortalShaftBinding.Binding transferables$getBoundPartner();
+	PortalBinding transferables$getBoundPartner();
 
-	void transferables$setPortalConnection(Direction towardPortal, PortalShaftBinding.Binding partner);
-
-	void transferables$setPortalBinding(@Nullable PortalShaftBinding.Binding partner);
+	void transferables$setPortalConnection(Direction towardPortal, PortalBinding partner);
 
 	void transferables$clearPortalConnection();
 
