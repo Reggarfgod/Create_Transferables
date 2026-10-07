@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "${mod_authors}"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/create-transferables",
+    "sources": "https://github.com/Reggarfgod/Create_Transferables",
+    "issues": "https://github.com/Reggarfgod/Create_Transferables/issues"
+  },
+  "license": "${mod_license}",
+  "icon": "transferables.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.reggarf.mods.transferables.Transferables"
+    ],
+    "client": [
+      "com.reggarf.mods.transferables.TransferablesClient"
+    ]
+  },
+  "mixins": [
+    "transferables.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}",
+    "java": ">=17",
+    "create": "${create_version_range}"
+  }
+}

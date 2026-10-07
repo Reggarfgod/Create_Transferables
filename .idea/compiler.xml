@@ -7,9 +7,43 @@
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.spongepowered/mixin/0.8.5/6d1c8bf4c28e697f472a83bd6add76ec4951734/mixin-0.8.5-processor.jar" />
         </processorPath>
-        <module name="Create_Transferables.main" />
+        <module name="Create_Transferables.neoforge-1_21_1.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <option name="defaultObfuscationEnv" value="named:intermediary" />
+        <option name="inMapFileNamedIntermediary" value="C:\Users\anoop\.gradle\caches\fabric-loom\1.20.1\loom.mappings.1_20_1.layered+hash.40545-v2-forge-1.20.1-47.3.0\mappings-mixin-srg.tiny" />
+        <option name="outMapFileNamedIntermediary" value="E:\MODS\transferables-neoforge\Create_Transferables\forge-1.20.1\build\loom-cache\mixin-map-loom.mappings.1_20_1.layered+hash.40545-v2-forge-1.20.1-47.3.0.main.tiny" />
+        <option name="outRefMapFile" value="E:\MODS\transferables-neoforge\Create_Transferables\forge-1.20.1\build\classes\java\main\transferables-forge-1.20.1-forge-1.20.1-refmap.json" />
+        <option name="quiet" value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.github.llamalad7/mixinextras-common/0.4.1/a7f425cc49de7f10d008a9a676f5f023ebac13bb/mixinextras-common-0.4.1.jar" />
+        </processorPath>
+        <module name="Create_Transferables.forge-1_20_1.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <option name="defaultObfuscationEnv" value="named:intermediary" />
+        <option name="inMapFileNamedIntermediary" value="C:\Users\anoop\.gradle\caches\fabric-loom\1.20.1\loom.mappings.1_20_1.layered+hash.1900670477-v2\mappings.tiny" />
+        <option name="outMapFileNamedIntermediary" value="E:\MODS\transferables-neoforge\Create_Transferables\fabric-1.20.1\build\loom-cache\mixin-map-loom.mappings.1_20_1.layered+hash.1900670477-v2.main.tiny" />
+        <option name="outRefMapFile" value="E:\MODS\transferables-neoforge\Create_Transferables\fabric-1.20.1\build\classes\java\main\transferables-fabric-1.20.1-fabric-1.20.1-refmap.json" />
+        <option name="quiet" value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.github.llamalad7/mixinextras-common/0.4.1/a7f425cc49de7f10d008a9a676f5f023ebac13bb/mixinextras-common-0.4.1.jar" />
+        </processorPath>
+        <module name="Create_Transferables.fabric-1_20_1.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="17" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Create_Transferables.fabric-1_20_1" options="-AoutRefMapFile=E:\MODS\transferables-neoforge\Create_Transferables\fabric-1.20.1\build\classes\java\main\transferables-fabric-1.20.1-fabric-1.20.1-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=E:\MODS\transferables-neoforge\Create_Transferables\fabric-1.20.1\build\loom-cache\mixin-map-loom.mappings.1_20_1.layered+hash.1900670477-v2.main.tiny -AinMapFileNamedIntermediary=C:\Users\anoop\.gradle\caches\fabric-loom\1.20.1\loom.mappings.1_20_1.layered+hash.1900670477-v2\mappings.tiny" />
+      <module name="Create_Transferables.fabric-1_20_1.main" options="-AoutRefMapFile=E:\MODS\transferables-neoforge\Create_Transferables\fabric-1.20.1\build\classes\java\main\transferables-fabric-1.20.1-fabric-1.20.1-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=E:\MODS\transferables-neoforge\Create_Transferables\fabric-1.20.1\build\loom-cache\mixin-map-loom.mappings.1_20_1.layered+hash.1900670477-v2.main.tiny -AinMapFileNamedIntermediary=C:\Users\anoop\.gradle\caches\fabric-loom\1.20.1\loom.mappings.1_20_1.layered+hash.1900670477-v2\mappings.tiny" />
+      <module name="Create_Transferables.fabric-1_20_1.test" options="-AoutRefMapFile=E:\MODS\transferables-neoforge\Create_Transferables\fabric-1.20.1\build\classes\java\test\test-transferables-fabric-1.20.1-fabric-1.20.1-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=E:\MODS\transferables-neoforge\Create_Transferables\fabric-1.20.1\build\loom-cache\mixin-map-loom.mappings.1_20_1.layered+hash.1900670477-v2.test.tiny -AinMapFileNamedIntermediary=C:\Users\anoop\.gradle\caches\fabric-loom\1.20.1\loom.mappings.1_20_1.layered+hash.1900670477-v2\mappings.tiny" />
+      <module name="Create_Transferables.forge-1_20_1" options="-AoutRefMapFile=E:\MODS\transferables-neoforge\Create_Transferables\forge-1.20.1\build\classes\java\main\transferables-forge-1.20.1-forge-1.20.1-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=E:\MODS\transferables-neoforge\Create_Transferables\forge-1.20.1\build\loom-cache\mixin-map-loom.mappings.1_20_1.layered+hash.40545-v2-forge-1.20.1-47.3.0.main.tiny -AinMapFileNamedIntermediary=C:\Users\anoop\.gradle\caches\fabric-loom\1.20.1\loom.mappings.1_20_1.layered+hash.40545-v2-forge-1.20.1-47.3.0\mappings-mixin-srg.tiny" />
+      <module name="Create_Transferables.forge-1_20_1.main" options="-AoutRefMapFile=E:\MODS\transferables-neoforge\Create_Transferables\forge-1.20.1\build\classes\java\main\transferables-forge-1.20.1-forge-1.20.1-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=E:\MODS\transferables-neoforge\Create_Transferables\forge-1.20.1\build\loom-cache\mixin-map-loom.mappings.1_20_1.layered+hash.40545-v2-forge-1.20.1-47.3.0.main.tiny -AinMapFileNamedIntermediary=C:\Users\anoop\.gradle\caches\fabric-loom\1.20.1\loom.mappings.1_20_1.layered+hash.40545-v2-forge-1.20.1-47.3.0\mappings-mixin-srg.tiny" />
+      <module name="Create_Transferables.forge-1_20_1.test" options="-AoutRefMapFile=E:\MODS\transferables-neoforge\Create_Transferables\forge-1.20.1\build\classes\java\test\test-transferables-forge-1.20.1-forge-1.20.1-refmap.json -AdefaultObfuscationEnv=named:intermediary -Aquiet=true -AoutMapFileNamedIntermediary=E:\MODS\transferables-neoforge\Create_Transferables\forge-1.20.1\build\loom-cache\mixin-map-loom.mappings.1_20_1.layered+hash.40545-v2-forge-1.20.1-47.3.0.test.tiny -AinMapFileNamedIntermediary=C:\Users\anoop\.gradle\caches\fabric-loom\1.20.1\loom.mappings.1_20_1.layered+hash.40545-v2-forge-1.20.1-47.3.0\mappings-mixin-srg.tiny" />
+    </option>
   </component>
 </project>

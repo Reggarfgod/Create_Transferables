@@ -1,7 +1,11 @@
 # Changelog
 
 ## 3.0 — Portal Transfer Overhaul
-**Minecraft 1.21.1 · NeoForge · Create 6.0.10**
+**Multi-loader: NeoForge 1.21.1 · Forge 1.20.1 · Create 6**
+
+### Multi-version project
+- Restructured as a multi-project Gradle workspace (`common` / `neoforge-1.21.1` / `forge-1.20.1` / `fabric-1.20.1`), matching Create Easy Villagers Multi-dev
+- Fabric 1.20.1 port with Create Fabric 6.0.8.1 (same portal feature set as Forge 1.20.1)
 
 ### Portal kinetics (shafts & cogs)
 - Portal shaft / cog placement now follows Create’s train-track portal rules
