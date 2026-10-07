@@ -63,7 +63,10 @@ jobs:
 
       - name: Build mod with Gradle
         if: steps.check_tag.outputs.exists == 'false'
-        run: ./gradlew build --no-daemon
+        run: |
+          # Strip local user machine Java paths from gradle.properties before building
+          sed -i '/^org\.gradle\.java\.home/d' gradle.properties
+          ./gradlew build --no-daemon
 
       - name: Generate Changelog
         if: steps.check_tag.outputs.exists == 'false'
