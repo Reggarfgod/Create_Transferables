@@ -67,7 +67,6 @@ jobs:
       - name: Build mod with Gradle
         if: steps.check_tag.outputs.exists == 'false'
         run: |
-          # Strip local user machine Java paths from gradle.properties before building
           sed -i '/^org\.gradle\.java\.home/d' gradle.properties
           ./gradlew build --no-daemon
 
@@ -76,24 +75,39 @@ jobs:
         run: |
           mkdir -p release_artifacts
 
-          # Find and collect only the mod jars from subprojects (forge, neoforge, fabric)
-          find . -mindepth 2 -maxdepth 3 -type f -path "*/build/libs/*.jar" \
-            ! -name "*sources*" \
-            ! -name "*javadoc*" \
-            ! -name "*dev*" | while read -r jar; do
-              # Get subproject directory name (e.g. forge-1.20.1)
-              subproject=$(echo "$jar" | cut -d'/' -f2)
-              filename=$(basename "$jar")
+          echo "=== Scanning for all built JARs in subprojects ==="
+          # Exclude the root ./build directory completely
+          find . -mindepth 2 -type f -name "*.jar" ! -path "./build/*"
+
+          echo "=== Collecting valid mod release files ==="
+          find . -mindepth 2 -type f -name "*.jar" ! -path "./build/*" \
+            ! -name "*-sources.jar" \
+            ! -name "*-javadoc.jar" \
+            ! -name "*-dev.jar" | while read -r jar; do
               
-              # Prefix the folder name if it's not already in the file name
-              if [[ "$filename" != *"$subproject"* ]]; then
-                cp "$jar" "release_artifacts/${subproject}-${filename}"
-              else
-                cp "$jar" "release_artifacts/${filename}"
+              # Ignore any dummy manifest jar under 1 KB
+              FILESIZE=$(stat -c%s "$jar" 2>/dev/null || stat -f%z "$jar")
+              if [ "$FILESIZE" -lt 1024 ]; then
+                echo "Skipping empty/dummy manifest jar: $jar ($FILESIZE bytes)"
+                continue
               fi
+
+              filename=$(basename "$jar")
+              # Extract subproject folder name (e.g. forge-1.20.1 or neoforge-1.21.1)
+              subproject=$(echo "$jar" | sed -E 's|^\./([^/]+)/.*|\1|')
+
+              # Prepend subproject prefix if not already present
+              if [[ "$filename" != *"$subproject"* ]]; then
+                destination="release_artifacts/${subproject}-${filename}"
+              else
+                destination="release_artifacts/${filename}"
+              fi
+
+              cp "$jar" "$destination"
+              echo "Copied: $jar -> $destination"
           done
 
-          echo "Files ready to publish:"
+          echo "=== Final files staged for release ==="
           ls -lh release_artifacts/
 
       - name: Generate Changelog
