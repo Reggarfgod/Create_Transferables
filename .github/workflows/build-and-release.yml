@@ -67,47 +67,37 @@ jobs:
       - name: Build mod with Gradle
         if: steps.check_tag.outputs.exists == 'false'
         run: |
+          # Strip local developer java path if present
           sed -i '/^org\.gradle\.java\.home/d' gradle.properties
           ./gradlew build --no-daemon
 
-      - name: Collect Subproject Artifacts
+      - name: Collect 4 Subproject Artifacts
         if: steps.check_tag.outputs.exists == 'false'
         run: |
           mkdir -p release_artifacts
 
-          echo "=== Scanning for all built JARs in subprojects ==="
-          # Exclude the root ./build directory completely
-          find . -mindepth 2 -type f -name "*.jar" ! -path "./build/*"
+          # Target the 4 subprojects directly
+          TARGET_DIRS=("common" "fabric-1.20.1" "forge-1.20.1" "neoforge-1.21.1")
 
-          echo "=== Collecting valid mod release files ==="
-          find . -mindepth 2 -type f -name "*.jar" ! -path "./build/*" \
-            ! -name "*-sources.jar" \
-            ! -name "*-javadoc.jar" \
-            ! -name "*-dev.jar" | while read -r jar; do
-              
-              # Ignore any dummy manifest jar under 1 KB
-              FILESIZE=$(stat -c%s "$jar" 2>/dev/null || stat -f%z "$jar")
-              if [ "$FILESIZE" -lt 1024 ]; then
-                echo "Skipping empty/dummy manifest jar: $jar ($FILESIZE bytes)"
-                continue
-              fi
-
-              filename=$(basename "$jar")
-              # Extract subproject folder name (e.g. forge-1.20.1 or neoforge-1.21.1)
-              subproject=$(echo "$jar" | sed -E 's|^\./([^/]+)/.*|\1|')
-
-              # Prepend subproject prefix if not already present
-              if [[ "$filename" != *"$subproject"* ]]; then
-                destination="release_artifacts/${subproject}-${filename}"
-              else
-                destination="release_artifacts/${filename}"
-              fi
-
-              cp "$jar" "$destination"
-              echo "Copied: $jar -> $destination"
+          for dir in "${TARGET_DIRS[@]}"; do
+            if [ -d "$dir/build/libs" ]; then
+              for jar in "$dir"/build/libs/*.jar; do
+                if [ -f "$jar" ]; then
+                  filename=$(basename "$jar")
+                  # Skip sources, javadoc, or dev artifacts
+                  if [[ "$filename" == *"-sources"* ]] || [[ "$filename" == *"-javadoc"* ]] || [[ "$filename" == *"-dev"* ]]; then
+                    continue
+                  fi
+                  cp "$jar" "release_artifacts/${filename}"
+                  echo "Collected: $jar -> release_artifacts/${filename}"
+                fi
+              done
+            else
+              echo "Directory $dir/build/libs not found, skipping."
+            fi
           done
 
-          echo "=== Final files staged for release ==="
+          echo "=== Staged files for release ==="
           ls -lh release_artifacts/
 
       - name: Generate Changelog
