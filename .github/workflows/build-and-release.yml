@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - Multi-dev
     paths-ignore:
       - '**.md'
       - '.github/ISSUE_TEMPLATE/**'
@@ -14,7 +15,7 @@ permissions:
 
 jobs:
   build-and-release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout repository
@@ -46,12 +47,14 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set up Java
+      - name: Set up Java 21 & 17
         if: steps.check_tag.outputs.exists == 'false'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: |
+            21
+            17
 
       - name: Setup Gradle
         if: steps.check_tag.outputs.exists == 'false'
@@ -67,6 +70,31 @@ jobs:
           # Strip local user machine Java paths from gradle.properties before building
           sed -i '/^org\.gradle\.java\.home/d' gradle.properties
           ./gradlew build --no-daemon
+
+      - name: Collect Subproject Artifacts
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          mkdir -p release_artifacts
+
+          # Find and collect only the mod jars from subprojects (forge, neoforge, fabric)
+          find . -mindepth 2 -maxdepth 3 -type f -path "*/build/libs/*.jar" \
+            ! -name "*sources*" \
+            ! -name "*javadoc*" \
+            ! -name "*dev*" | while read -r jar; do
+              # Get subproject directory name (e.g. forge-1.20.1)
+              subproject=$(echo "$jar" | cut -d'/' -f2)
+              filename=$(basename "$jar")
+              
+              # Prefix the folder name if it's not already in the file name
+              if [[ "$filename" != *"$subproject"* ]]; then
+                cp "$jar" "release_artifacts/${subproject}-${filename}"
+              else
+                cp "$jar" "release_artifacts/${filename}"
+              fi
+          done
+
+          echo "Files ready to publish:"
+          ls -lh release_artifacts/
 
       - name: Generate Changelog
         if: steps.check_tag.outputs.exists == 'false'
@@ -88,8 +116,7 @@ jobs:
           tag_name: ${{ steps.mod_info.outputs.tag }}
           name: Release ${{ steps.mod_info.outputs.version }}
           body_path: CHANGELOG.md
-          files: |
-            build/libs/*[!sources|!javadoc].jar
+          files: release_artifacts/*.jar
           draft: false
           prerelease: false
         env:
