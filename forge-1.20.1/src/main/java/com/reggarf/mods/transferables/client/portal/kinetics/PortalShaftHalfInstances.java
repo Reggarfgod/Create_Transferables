@@ -53,26 +53,40 @@ public final class PortalShaftHalfInstances {
 		return towardPortal.getOpposite();
 	}
 
+	/** World position of the portal block (used for lighting lookup). */
 	public static BlockPos portalPos(KineticBlockEntity be, Direction towardPortal) {
 		return be.getBlockPos().relative(towardPortal);
 	}
 
-	public static RotatingInstance create(InstancerProvider provider, KineticBlockEntity be, Direction towardPortal) {
+	/** Position relative to the visualization origin. */
+	public static BlockPos portalVisualPos(BlockPos visualPos, Direction towardPortal) {
+		return visualPos.relative(towardPortal);
+	}
+
+	public static RotatingInstance create(InstancerProvider provider, KineticBlockEntity be, BlockPos visualPos, Direction towardPortal) {
 		// shaft_half is authored along +Z (SOUTH), same as motors / encased cog stubs.
 		Direction facing = modelFacing(towardPortal);
 		RotatingInstance instance = provider.instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF))
 				.createInstance();
 		instance.setup(be)
-				.setPosition(portalPos(be, towardPortal))
+				.setPosition(portalVisualPos(visualPos, towardPortal))
 				.rotateToFace(Direction.SOUTH, facing)
 				.setChanged();
 		return instance;
 	}
 
+	public static RotatingInstance create(InstancerProvider provider, KineticBlockEntity be, Direction towardPortal) {
+		return create(provider, be, be.getBlockPos(), towardPortal);
+	}
+
 	/** Speed/light sync only — do not call {@code rotateToFace} again (it accumulates on the quaternion). */
-	public static void sync(RotatingInstance instance, KineticBlockEntity be, Direction towardPortal) {
+	public static void sync(RotatingInstance instance, KineticBlockEntity be, BlockPos visualPos, Direction towardPortal) {
 		instance.setup(be)
-				.setPosition(portalPos(be, towardPortal))
+				.setPosition(portalVisualPos(visualPos, towardPortal))
 				.setChanged();
+	}
+
+	public static void sync(RotatingInstance instance, KineticBlockEntity be, Direction towardPortal) {
+		sync(instance, be, be.getBlockPos(), towardPortal);
 	}
 }

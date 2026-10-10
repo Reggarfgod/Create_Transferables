@@ -29,7 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * CPU fallback when Flywheel is off: renders Create's {@code SHAFT_HALF} into the portal
+ * CPU fallback when Flywheel is off: renders Create's {@code SHAFT_HALF} into the portal in front of the shaft
  * (same partial + kinetic angle motors use). With Flywheel, {@link com.reggarf.mods.transferables.mixin.client.SingleAxisRotatingVisualMixin}
  * registers the half-shaft as a real rotating instance instead.
  */
@@ -40,7 +40,7 @@ public final class PortalShaftRenderer {
 	private PortalShaftRenderer() {}
 
 	public static void register() {
-		WorldRenderEvents.AFTER_TRANSLUCENT.register(PortalShaftRenderer::renderPortalShafts);
+		WorldRenderEvents.AFTER_ENTITIES.register(PortalShaftRenderer::renderPortalShafts);
 	}
 
 	private static void renderPortalShafts(WorldRenderContext context) {
@@ -49,14 +49,14 @@ public final class PortalShaftRenderer {
 		if (level == null || VisualizationManager.supportsVisualization(level))
 			return;
 
-		MultiBufferSource consumers = context.consumers();
 		PoseStack poseStack = context.matrixStack();
-		if (consumers == null || poseStack == null)
+		if (poseStack == null)
 			return;
 
 		Camera camera = context.camera();
 		Vec3 cameraPos = camera.getPosition();
 		BlockPos cameraBlock = camera.getBlockPosition();
+		MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
 
 		BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 		for (int x = -HORIZONTAL_RENDER_RADIUS; x <= HORIZONTAL_RENDER_RADIUS; x++) {
@@ -65,17 +65,16 @@ public final class PortalShaftRenderer {
 					mutable.set(cameraBlock.getX() + x, cameraBlock.getY() + y, cameraBlock.getZ() + z);
 					if (!PortalProvider.isSupportedPortal(level.getBlockState(mutable)))
 						continue;
-					renderPortalBlockShafts(level, mutable.immutable(), cameraPos, poseStack, consumers);
+					renderPortalBlockShafts(level, mutable.immutable(), cameraPos, poseStack, bufferSource);
 				}
 			}
 		}
 
-		if (consumers instanceof MultiBufferSource.BufferSource bufferSource)
-			bufferSource.endBatch(RenderType.solid());
+		bufferSource.endBatch(RenderType.solid());
 	}
 
 	private static void renderPortalBlockShafts(ClientLevel level, BlockPos portalPos, Vec3 cameraPos,
-	                                            PoseStack poseStack, MultiBufferSource consumers) {
+	                                            PoseStack poseStack, MultiBufferSource.BufferSource bufferSource) {
 		for (Direction fromPortalToShaft : Direction.values()) {
 			Direction towardPortal = fromPortalToShaft.getOpposite();
 			BlockPos shaftPos = portalPos.relative(fromPortalToShaft);
@@ -93,13 +92,13 @@ public final class PortalShaftRenderer {
 					continue;
 			}
 
-			renderShaftHalf(shaft, shaftState, level, portalPos, towardPortal, cameraPos, poseStack, consumers);
+			renderShaftHalf(shaft, shaftState, level, portalPos, towardPortal, cameraPos, poseStack, bufferSource);
 		}
 	}
 
 	private static void renderShaftHalf(KineticBlockEntity shaft, BlockState shaftState, ClientLevel level,
 	                                    BlockPos portalPos, Direction towardPortal, Vec3 cameraPos,
-	                                    PoseStack poseStack, MultiBufferSource consumers) {
+	                                    PoseStack poseStack, MultiBufferSource.BufferSource bufferSource) {
 		Direction modelFacing = PortalShaftHalfInstances.modelFacing(towardPortal);
 		Axis axis = ((IRotate) shaftState.getBlock()).getRotationAxis(shaftState);
 
@@ -111,7 +110,7 @@ public final class PortalShaftRenderer {
 
 		int light = LevelRenderer.getLightColor(level, portalPos);
 		float angle = KineticBlockEntityRenderer.getAngleForBe(shaft, shaft.getBlockPos(), axis);
-		VertexConsumer solid = consumers.getBuffer(RenderType.solid());
+		VertexConsumer solid = bufferSource.getBuffer(RenderType.solid());
 
 		SuperByteBuffer half = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, shaftState, modelFacing);
 		KineticBlockEntityRenderer.kineticRotationTransform(half, shaft, axis, angle, light).renderInto(poseStack, solid);

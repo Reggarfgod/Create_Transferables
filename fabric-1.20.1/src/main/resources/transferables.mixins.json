@@ -6,6 +6,7 @@
   "refmap": "transferables.refmap.json",
   "mixins": [
     "KineticBlockEntityMixin",
+    "FluidPipeBlockMixin",
     "FluidTransportBehaviourMixin",
     "PipeConnectionAccessor",
     "PipeConnectionMixin",

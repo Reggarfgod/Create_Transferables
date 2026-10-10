@@ -42,22 +42,23 @@ public final class PortalFluidRenderer {
 	private PortalFluidRenderer() {}
 
 	public static void register() {
-		WorldRenderEvents.AFTER_TRANSLUCENT.register(PortalFluidRenderer::renderPortalFluids);
+		WorldRenderEvents.AFTER_ENTITIES.register(PortalFluidRenderer::renderPortalFluids);
 	}
 
 	private static void renderPortalFluids(WorldRenderContext context) {
-		ClientLevel level = Minecraft.getInstance().level;
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
 		if (level == null)
 			return;
 
-		MultiBufferSource consumers = context.consumers();
 		PoseStack poseStack = context.matrixStack();
-		if (consumers == null || poseStack == null)
+		if (poseStack == null)
 			return;
 
 		Camera camera = context.camera();
 		Vec3 cameraPos = camera.getPosition();
 		BlockPos cameraBlock = camera.getBlockPosition();
+		MultiBufferSource.BufferSource bufferSource = minecraft.renderBuffers().bufferSource();
 
 		BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
 		for (int x = -HORIZONTAL_RENDER_RADIUS; x <= HORIZONTAL_RENDER_RADIUS; x++) {
@@ -66,21 +67,19 @@ public final class PortalFluidRenderer {
 					mutable.set(cameraBlock.getX() + x, cameraBlock.getY() + y, cameraBlock.getZ() + z);
 					if (!PortalProvider.isSupportedPortal(level.getBlockState(mutable)))
 						continue;
-					renderPortalBlockPipes(level, mutable.immutable(), cameraPos, poseStack, consumers);
+					renderPortalBlockPipes(level, mutable.immutable(), cameraPos, poseStack, bufferSource);
 				}
 			}
 		}
 
-		if (consumers instanceof MultiBufferSource.BufferSource bufferSource) {
-			bufferSource.endBatch(RenderType.solid());
-			bufferSource.endBatch(RenderType.cutout());
-			bufferSource.endBatch(RenderType.cutoutMipped());
-			bufferSource.endBatch(RenderType.translucent());
-		}
+		bufferSource.endBatch(RenderType.solid());
+		bufferSource.endBatch(RenderType.cutout());
+		bufferSource.endBatch(RenderType.cutoutMipped());
+		bufferSource.endBatch(RenderType.translucent());
 	}
 
 	private static void renderPortalBlockPipes(ClientLevel level, BlockPos portalPos, Vec3 cameraPos,
-	                                           PoseStack poseStack, MultiBufferSource consumers) {
+	                                           PoseStack poseStack, MultiBufferSource.BufferSource bufferSource) {
 		for (Direction fromPortalToPipe : Direction.values()) {
 			Direction pipeTowardPortal = fromPortalToPipe.getOpposite();
 			BlockPos pipePos = portalPos.relative(fromPortalToPipe);
@@ -92,22 +91,28 @@ public final class PortalFluidRenderer {
 			FluidTransportBehaviour pipe = BlockEntityBehaviour.get(level, pipePos, FluidTransportBehaviour.TYPE);
 			if (pipe == null)
 				continue;
-			if (!pipe.canHaveFlowToward(pipeState, pipeTowardPortal))
-				continue;
 
-			if (pipe instanceof PortalPumpAccess access && !access.transferables$isPumpPortalConnected()) {
-				if (!PortalFluidLink.isFacingPortal(level, pipePos, pipeTowardPortal))
+			if (pipe instanceof PortalPumpAccess access) {
+				boolean validFacing;
+				if (access.transferables$isPumpPortalConnected()) {
+					validFacing = access.transferables$getPumpPortalDirection() == pipeTowardPortal;
+				} else {
+					validFacing = PortalFluidLink.isFacingPortal(level, pipePos, pipeTowardPortal);
+				}
+				if (!validFacing)
 					continue;
+			} else if (!pipe.canHaveFlowToward(pipeState, pipeTowardPortal)) {
+				continue;
 			}
 
 			renderPipeOnPortalBlock(pipe, pipeState, level, portalPos, pipeTowardPortal, cameraPos, poseStack,
-					consumers);
+					bufferSource);
 		}
 	}
 
 	private static void renderPipeOnPortalBlock(FluidTransportBehaviour pipe, BlockState pipeState, ClientLevel level,
 	                                            BlockPos portalPos, Direction pipeTowardPortal, Vec3 cameraPos,
-	                                            PoseStack poseStack, MultiBufferSource consumers) {
+	                                            PoseStack poseStack, MultiBufferSource.BufferSource bufferSource) {
 		poseStack.pushPose();
 		poseStack.translate(
 				portalPos.getX() - cameraPos.x,
@@ -136,7 +141,7 @@ public final class PortalFluidRenderer {
 		renderNearestPortalHalf(pipeTowardPortal, poseStack);
 		Minecraft.getInstance()
 				.getBlockRenderer()
-				.renderSingleBlock(renderState, poseStack, consumers, light, OverlayTexture.NO_OVERLAY);
+				.renderSingleBlock(renderState, poseStack, bufferSource, light, OverlayTexture.NO_OVERLAY);
 		poseStack.popPose();
 
 		// 2) fluid stream inside the stub
@@ -144,7 +149,7 @@ public final class PortalFluidRenderer {
 		if (!fluid.isEmpty()) {
 			poseStack.pushPose();
 			FluidRenderer.renderFluidStream(fluid, pipeTowardPortal, FLUID_RADIUS, FLUID_PROGRESS, false,
-					consumers, poseStack, light);
+					bufferSource, poseStack, light);
 			poseStack.popPose();
 		}
 

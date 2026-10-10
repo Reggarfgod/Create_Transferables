@@ -16,8 +16,6 @@ import com.simibubi.create.content.kinetics.base.RotatingInstance;
 import com.simibubi.create.content.kinetics.base.SingleAxisRotatingVisual;
 
 import dev.engine_room.flywheel.api.instance.Instance;
-import dev.engine_room.flywheel.api.model.Model;
-import dev.engine_room.flywheel.api.visualization.VisualizationContext;
 import net.minecraft.core.Direction;
 
 /**
@@ -29,10 +27,8 @@ public abstract class SingleAxisRotatingVisualMixin {
 	@Unique @Nullable private RotatingInstance transferables$portalHalf;
 	@Unique @Nullable private Direction transferables$towardPortal;
 
-	@Inject(method = "<init>(Ldev/engine_room/flywheel/api/visualization/VisualizationContext;Lcom/simibubi/create/content/kinetics/base/KineticBlockEntity;FLnet/minecraft/core/Direction;Ldev/engine_room/flywheel/api/model/Model;)V",
-			at = @At("RETURN"))
-	private void transferables$initPortalHalf(VisualizationContext context, KineticBlockEntity blockEntity, float partialTick,
-	                                          Direction from, Model model, CallbackInfo ci) {
+	@Inject(method = "<init>", at = @At("RETURN"))
+	private void transferables$initPortalHalf(CallbackInfo ci) {
 		transferables$refreshPortalHalf();
 	}
 
@@ -103,11 +99,11 @@ public abstract class SingleAxisRotatingVisualMixin {
 				transferables$portalHalf.delete();
 			transferables$towardPortal = towardPortal;
 			transferables$portalHalf = PortalShaftHalfInstances.create(
-					((AbstractVisualAccessor) this).transferables$instancerProvider(), be, towardPortal);
+					((AbstractVisualAccessor) this).transferables$instancerProvider(), be, access.transferables$visualPos(), towardPortal);
 			access.transferables$relight(PortalShaftHalfInstances.portalPos(be, towardPortal), transferables$portalHalf);
 			return;
 		}
 
-		PortalShaftHalfInstances.sync(transferables$portalHalf, be, towardPortal);
+		PortalShaftHalfInstances.sync(transferables$portalHalf, be, access.transferables$visualPos(), towardPortal);
 	}
 }
