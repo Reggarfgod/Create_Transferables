@@ -21,8 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * One player-placed mechanical pump bridges through a portal to an auto-placed fluid pipe
- * on the other side — only one pump is required.
+ * Mechanical Pumps on both sides of a Nether Portal transfer fluids across dimensions.
  */
 public final class PortalFluidLink {
 	private PortalFluidLink() {}
@@ -43,7 +42,7 @@ public final class PortalFluidLink {
 			PortalBinding bound = access.transferables$getPumpBoundPartner();
 			if (bound != null) {
 				ServerLevel other = level.getServer().getLevel(bound.dimension());
-				if (other != null && other.isLoaded(bound.pos()) && isPortalFluidNode(other.getBlockState(bound.pos())))
+				if (other != null && other.isLoaded(bound.pos()) && isPortalPump(other.getBlockState(bound.pos())))
 					return new FluidEndpoint(bound.dimension(), bound.pos());
 			}
 		}
@@ -56,7 +55,7 @@ public final class PortalFluidLink {
 		BlockPos otherPos = exit.face().getPos();
 		if (!otherLevel.isLoaded(otherPos))
 			return null;
-		if (!isPortalFluidNode(otherLevel.getBlockState(otherPos)))
+		if (!isPortalPump(otherLevel.getBlockState(otherPos)))
 			return null;
 		if (!linksBack(otherLevel, otherPos, level, selfPos))
 			return null;
@@ -97,7 +96,6 @@ public final class PortalFluidLink {
 		return FluidPipeBlock.isPipe(state) || state.getBlock() instanceof GlassFluidPipeBlock;
 	}
 
-	/** Pump (player side) or pipe (exit side) that can participate in a portal fluid link. */
 	public static boolean isPortalFluidNode(BlockState state) {
 		return isPortalPump(state) || isPortalPipe(state);
 	}

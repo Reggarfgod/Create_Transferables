@@ -12,4 +12,10 @@ import com.simibubi.create.content.fluids.PipeConnection;
 public interface PipeConnectionAccessor {
 	@Accessor("source")
 	Optional<FlowSource> transferables$getSource();
+
+	@Accessor("flow")
+	Optional<PipeConnection.Flow> transferables$getFlow();
+
+	@Accessor("flow")
+	void transferables$setFlow(Optional<PipeConnection.Flow> flow);
 }

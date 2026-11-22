@@ -10,7 +10,8 @@
     "FluidTransportBehaviourMixin",
     "PipeConnectionAccessor",
     "PipeConnectionMixin",
-    "PumpBlockEntityMixin"
+    "PumpBlockEntityMixin",
+    "WrenchItemMixin"
   ],
   "client": [
     "client.AbstractVisualAccessor",

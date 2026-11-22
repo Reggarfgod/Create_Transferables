@@ -208,7 +208,7 @@ public final class PortalShaftBinding {
 			if (breakPartner && PortalShaftLink.isPortalShaft(otherLevel.getBlockState(partner.pos()))) {
 				CASCADING_BREAKS.add(GlobalPos.of(partner.dimension(), partner.pos()));
 				PortalDropEvents.suppressNextDrop(partner.dimension(), partner.pos());
-				PortalPlacement.runSuppressed(() -> otherLevel.destroyBlock(partner.pos(), true));
+				PortalPlacement.runSuppressed(() -> otherLevel.destroyBlock(partner.pos(), false));
 			}
 		}
 	}

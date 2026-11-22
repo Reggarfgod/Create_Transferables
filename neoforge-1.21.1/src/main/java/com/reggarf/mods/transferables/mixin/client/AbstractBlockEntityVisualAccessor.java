@@ -14,6 +14,9 @@ public interface AbstractBlockEntityVisualAccessor {
 	@Accessor("blockEntity")
 	BlockEntity transferables$blockEntity();
 
+	@Accessor("visualPos")
+	BlockPos transferables$visualPos();
+
 	@Invoker("relight")
 	void transferables$relight(BlockPos pos, FlatLit... instances);
 }

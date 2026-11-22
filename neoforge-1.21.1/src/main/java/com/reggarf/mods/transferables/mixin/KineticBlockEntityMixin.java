@@ -12,8 +12,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.reggarf.mods.transferables.api.PortalAccess;
 import com.reggarf.mods.transferables.api.PortalBinding;
+import com.reggarf.mods.transferables.api.PortalPumpAccess;
+import com.reggarf.mods.transferables.content.portal.fluids.PortalFluidBinding;
+import com.reggarf.mods.transferables.content.portal.fluids.PortalFluidLink;
 import com.reggarf.mods.transferables.content.portal.kinetics.PortalShaftBinding;
 import com.reggarf.mods.transferables.content.portal.kinetics.PortalShaftLink;
+import com.simibubi.create.content.fluids.FluidTransportBehaviour;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 
 import dev.engine_room.flywheel.lib.visualization.VisualizationHelper;
@@ -105,8 +109,16 @@ public abstract class KineticBlockEntityMixin implements PortalAccess {
 	private void transferables$onRemove(CallbackInfo ci) {
 		KineticBlockEntity self = transferables$self();
 		Level level = self.getLevel();
-		if (level instanceof ServerLevel serverLevel)
-			PortalShaftBinding.onRemoved(self, this, serverLevel);
+		if (level instanceof ServerLevel serverLevel) {
+			if (PortalShaftLink.isPortalShaft(self.getBlockState())) {
+				PortalShaftBinding.onRemoved(self, this, serverLevel);
+			} else if (PortalFluidLink.isPortalPump(self.getBlockState())) {
+				FluidTransportBehaviour node = self.getBehaviour(FluidTransportBehaviour.TYPE);
+				if (node instanceof PortalPumpAccess pumpAccess) {
+					PortalFluidBinding.onRemoved(node, pumpAccess, serverLevel);
+				}
+			}
+		}
 	}
 
 	@Inject(method = "write", at = @At("TAIL"))
@@ -304,14 +316,12 @@ public abstract class KineticBlockEntityMixin implements PortalAccess {
 	}
 
 	@Override
-	@Nullable
-	public Direction transferables$getPortalDirection() {
+	public @Nullable Direction transferables$getPortalDirection() {
 		return transferables$portalDirection;
 	}
 
 	@Override
-	@Nullable
-	public PortalBinding transferables$getBoundPartner() {
+	public @Nullable PortalBinding transferables$getBoundPartner() {
 		return transferables$boundPartner;
 	}
 

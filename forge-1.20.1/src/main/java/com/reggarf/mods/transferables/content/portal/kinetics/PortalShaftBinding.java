@@ -208,7 +208,6 @@ public final class PortalShaftBinding {
 			if (breakPartner && PortalShaftLink.isPortalShaft(otherLevel.getBlockState(partner.pos()))) {
 				CASCADING_BREAKS.add(GlobalPos.of(partner.dimension(), partner.pos()));
 				PortalDropEvents.suppressNextDrop(partner.dimension(), partner.pos());
-				// Forge has no BlockDropsEvent — remove without drops for auto/cascading breaks
 				PortalPlacement.runSuppressed(() -> otherLevel.destroyBlock(partner.pos(), false));
 			}
 		}

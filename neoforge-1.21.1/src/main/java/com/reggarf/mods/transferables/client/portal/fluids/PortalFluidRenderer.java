@@ -90,12 +90,18 @@ public final class PortalFluidRenderer {
 			FluidTransportBehaviour pipe = BlockEntityBehaviour.get(level, pipePos, FluidTransportBehaviour.TYPE);
 			if (pipe == null)
 				continue;
-			if (!pipe.canHaveFlowToward(pipeState, pipeTowardPortal))
-				continue;
 
-			if (pipe instanceof PortalPumpAccess access && !access.transferables$isPumpPortalConnected()) {
-				if (!PortalFluidLink.isFacingPortal(level, pipePos, pipeTowardPortal))
+			if (pipe instanceof PortalPumpAccess access) {
+				boolean validFacing;
+				if (access.transferables$isPumpPortalConnected()) {
+					validFacing = access.transferables$getPumpPortalDirection() == pipeTowardPortal;
+				} else {
+					validFacing = PortalFluidLink.isFacingPortal(level, pipePos, pipeTowardPortal);
+				}
+				if (!validFacing)
 					continue;
+			} else if (!pipe.canHaveFlowToward(pipeState, pipeTowardPortal)) {
+				continue;
 			}
 
 			renderPipeOnPortalBlock(pipe, pipeState, level, portalPos, pipeTowardPortal, camera, poseStack,

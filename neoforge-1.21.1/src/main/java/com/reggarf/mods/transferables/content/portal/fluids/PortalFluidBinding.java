@@ -25,8 +25,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Player places one mechanical pump; the other dimension gets a fluid pipe.
- * Fluid crosses through the shared portal bridge — no second pump required.
+ * Both portal endpoints use Mechanical Pumps.
+ * The source-side pump pushes fluid through the portal, and the destination-side
+ * pump receives fluid and outputs it into its connected fluid network.
  */
 public final class PortalFluidBinding {
 	private static final String LANG = "transferables.portal_pump";
@@ -45,7 +46,6 @@ public final class PortalFluidBinding {
 
 		BlockPos pos = pump.getPos();
 		BlockState state = pump.blockEntity.getBlockState();
-		// Only pumps initiate — exit pipes never call this
 		if (!PortalFluidLink.isPortalPump(state))
 			return;
 
@@ -58,7 +58,7 @@ public final class PortalFluidBinding {
 				if (partner != null) {
 					ServerLevel other = level.getServer().getLevel(partner.dimension());
 					if (other != null && other.isLoaded(partner.pos())
-							&& PortalFluidLink.isPortalFluidNode(other.getBlockState(partner.pos())))
+							&& PortalFluidLink.isPortalPump(other.getBlockState(partner.pos())))
 						return;
 				}
 			}
@@ -82,21 +82,22 @@ public final class PortalFluidBinding {
 
 			BlockPos exitPos = exit.face().getPos();
 			BlockState exitState = exit.level().getBlockState(exitPos);
-			if (!exitState.canBeReplaced() && !PortalFluidLink.isPortalFluidNode(exitState)) {
+			if (!exitState.canBeReplaced() && !PortalFluidLink.isPortalPump(exitState) && !PortalFluidLink.isPortalPipe(exitState)) {
 				fail = "blocked";
 				failPos = exitPos;
 				continue;
 			}
 
-			if (!placeOrReuseExitPipe(level, pos, exit)) {
+			boolean wasAutoPlaced = placeOrReuseExitPump(level, pos, exit);
+			if (!wasAutoPlaced && !PortalFluidLink.isPortalPump(exit.level().getBlockState(exitPos))) {
 				fail = "blocked";
 				failPos = exitPos;
 				continue;
 			}
 
-			FluidTransportBehaviour exitPipe = BlockEntityBehaviour.get(exit.level(), exitPos,
+			FluidTransportBehaviour exitPump = BlockEntityBehaviour.get(exit.level(), exitPos,
 					FluidTransportBehaviour.TYPE);
-			if (exitPipe == null || !(exitPipe instanceof PortalPumpAccess exitAccess)) {
+			if (exitPump == null || !(exitPump instanceof PortalPumpAccess exitAccess)) {
 				fail = "blocked";
 				failPos = exitPos;
 				continue;
@@ -104,11 +105,11 @@ public final class PortalFluidBinding {
 
 			bindPair(level, pos, towardPortal, exit.level(), exitPos, exit.face().getFace(), access, exitAccess);
 			pump.blockEntity.notifyUpdate();
-			exitPipe.blockEntity.notifyUpdate();
+			exitPump.blockEntity.notifyUpdate();
 			FluidPropagator.propagateChangedPipe(level, pos, state);
 			FluidPropagator.propagateChangedPipe(exit.level(), exitPos, exit.level().getBlockState(exitPos));
 			level.updateNeighborsAt(pos, state.getBlock());
-			exit.level().updateNeighborsAt(exitPos, exitPipe.blockEntity.getBlockState().getBlock());
+			exit.level().updateNeighborsAt(exitPos, exitPump.blockEntity.getBlockState().getBlock());
 			return;
 		}
 
@@ -145,18 +146,22 @@ public final class PortalFluidBinding {
 		exitAccess.transferables$setPlayerPlaced(false);
 	}
 
-	/** Places a straight fluid pipe on the far side (not a second pump). */
-	private static boolean placeOrReuseExitPipe(ServerLevel sourceLevel, BlockPos sourcePos,
+	/**
+	 * Places or reuses a Mechanical Pump on the exit side of the portal.
+	 * Returns true if a pump was newly placed or successfully configured.
+	 */
+	private static boolean placeOrReuseExitPump(ServerLevel sourceLevel, BlockPos sourcePos,
 	                                            PortalProvider.Exit exit) {
 		ServerLevel exitLevel = exit.level();
 		BlockPos exitPos = exit.face().getPos();
 		BlockState existing = exitLevel.getBlockState(exitPos);
 		Direction exitTowardPortal = exit.face().getFace();
-		Direction.Axis exitAxis = exitTowardPortal.getAxis();
+		Direction exitFacing = exitTowardPortal.getOpposite();
 		PortalBinding expectedPartner = new PortalBinding(sourceLevel.dimension(), sourcePos);
-		BlockState pipeState = AllBlocks.FLUID_PIPE.get().getAxisState(exitAxis);
+		BlockState pumpState = AllBlocks.MECHANICAL_PUMP.getDefaultState()
+				.setValue(PumpBlock.FACING, exitFacing);
 
-		if (PortalFluidLink.isPortalFluidNode(existing)) {
+		if (PortalFluidLink.isPortalPump(existing)) {
 			FluidTransportBehaviour existingNode = BlockEntityBehaviour.get(exitLevel, exitPos,
 					FluidTransportBehaviour.TYPE);
 			if (!(existingNode instanceof PortalPumpAccess existingAccess))
@@ -168,12 +173,11 @@ public final class PortalFluidBinding {
 					return false;
 			}
 
-			// Prefer a pipe exit — convert leftover auto-pumps from older versions
 			boolean[] ok = { true };
 			PortalPlacement.runSuppressed(() -> {
-				if (!PortalFluidLink.isPortalPipe(existing)
-						|| FluidPropagator.getStraightPipeAxis(existing) != exitAxis) {
-					ok[0] = exitLevel.setBlock(exitPos, pipeState, EXIT_PLACE_FLAGS);
+				if (existing.hasProperty(PumpBlock.FACING)
+						&& existing.getValue(PumpBlock.FACING) != exitFacing) {
+					ok[0] = exitLevel.setBlock(exitPos, pumpState, EXIT_PLACE_FLAGS);
 				}
 				FluidTransportBehaviour after = BlockEntityBehaviour.get(exitLevel, exitPos,
 						FluidTransportBehaviour.TYPE);
@@ -185,20 +189,21 @@ public final class PortalFluidBinding {
 			return ok[0];
 		}
 
-		if (!existing.canBeReplaced())
-			return false;
+		if (PortalFluidLink.isPortalPipe(existing) || existing.canBeReplaced()) {
+			boolean[] ok = { false };
+			PortalPlacement.runSuppressed(() -> {
+				ok[0] = exitLevel.setBlock(exitPos, pumpState, EXIT_PLACE_FLAGS);
+				FluidTransportBehaviour exitPump = BlockEntityBehaviour.get(exitLevel, exitPos,
+						FluidTransportBehaviour.TYPE);
+				if (ok[0] && exitPump instanceof PortalPumpAccess exitAccess) {
+					exitAccess.transferables$setPlayerPlaced(false);
+					exitPump.blockEntity.notifyUpdate();
+				}
+			});
+			return ok[0];
+		}
 
-		boolean[] ok = { false };
-		PortalPlacement.runSuppressed(() -> {
-			ok[0] = exitLevel.setBlock(exitPos, pipeState, EXIT_PLACE_FLAGS);
-			FluidTransportBehaviour exitPipe = BlockEntityBehaviour.get(exitLevel, exitPos,
-					FluidTransportBehaviour.TYPE);
-			if (ok[0] && exitPipe instanceof PortalPumpAccess exitAccess) {
-				exitAccess.transferables$setPlayerPlaced(false);
-				exitPipe.blockEntity.notifyUpdate();
-			}
-		});
-		return ok[0];
+		return false;
 	}
 
 	private static void disconnect(FluidTransportBehaviour node, PortalPumpAccess access, ServerLevel level,
@@ -226,19 +231,10 @@ public final class PortalFluidBinding {
 		if (!breakPartner)
 			return;
 
-		// Same as shafts: breaking either side removes the other.
-		// Auto pipe → no item; player pump → drops so the placed pump is returned.
-		if (PortalFluidLink.isPortalPipe(partnerState)) {
+		if (PortalFluidLink.isPortalPump(partnerState)) {
 			CASCADING_BREAKS.add(GlobalPos.of(partner.dimension(), partner.pos()));
 			PortalDropEvents.suppressNextDrop(partner.dimension(), partner.pos());
-			PortalPlacement.runSuppressed(() -> otherLevel.destroyBlock(partner.pos(), true));
-		} else if (PortalFluidLink.isPortalPump(partnerState)) {
-			CASCADING_BREAKS.add(GlobalPos.of(partner.dimension(), partner.pos()));
-			boolean autoPlaced = partnerNode instanceof PortalPumpAccess pa
-					&& !pa.transferables$isPlayerPlaced();
-			if (autoPlaced)
-				PortalDropEvents.suppressNextDrop(partner.dimension(), partner.pos());
-			PortalPlacement.runSuppressed(() -> otherLevel.destroyBlock(partner.pos(), true));
+			PortalPlacement.runSuppressed(() -> otherLevel.destroyBlock(partner.pos(), false));
 		}
 	}
 }

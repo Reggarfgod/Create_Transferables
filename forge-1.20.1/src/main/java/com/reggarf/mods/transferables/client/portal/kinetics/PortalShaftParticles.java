@@ -2,6 +2,7 @@ package com.reggarf.mods.transferables.client.portal.kinetics;
 
 import com.reggarf.mods.transferables.Transferables;
 import com.reggarf.mods.transferables.api.PortalAccess;
+import com.reggarf.mods.transferables.api.PortalProvider;
 import com.reggarf.mods.transferables.content.portal.kinetics.PortalShaftLink;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.trains.CubeParticleData;
@@ -12,9 +13,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.event.TickEvent;
 
 /** Spawns subtle portal particles on bound shafts, matching Create's portal track {@code animateTick}. */
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = Transferables.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -46,16 +47,30 @@ public final class PortalShaftParticles {
 				for (int z = -PARTICLE_RADIUS; z <= PARTICLE_RADIUS; z++) {
 					mutable.set(center.getX() + x, center.getY() + y, center.getZ() + z);
 					BlockState state = level.getBlockState(mutable);
-					if (PortalShaftLink.getPortalShaftAxis(state) == null)
+					Direction.Axis axis = PortalShaftLink.getPortalShaftAxis(state);
+					if (axis == null)
 						continue;
 
 					if (!(level.getBlockEntity(mutable) instanceof KineticBlockEntity shaft))
 						continue;
-					if (!(shaft instanceof PortalAccess access) || !access.transferables$isPortalConnected())
+					if (!(shaft instanceof PortalAccess access))
 						continue;
 
-					Direction towardPortal = access.transferables$getPortalDirection();
+					Direction towardPortal = null;
+					if (access.transferables$isPortalConnected()) {
+						towardPortal = access.transferables$getPortalDirection();
+					} else {
+						for (Direction dir : Direction.values()) {
+							if (dir.getAxis() == axis && PortalShaftLink.isShaftFacingPortal(level, mutable, dir)) {
+								towardPortal = dir;
+								break;
+							}
+						}
+					}
+
 					if (towardPortal == null)
+						continue;
+					if (!PortalProvider.isSupportedPortal(level.getBlockState(mutable.relative(towardPortal))))
 						continue;
 
 					double px = mutable.getX() + 0.5 + towardPortal.getStepX() * 0.45 + (random.nextDouble() - 0.5) * 0.2;

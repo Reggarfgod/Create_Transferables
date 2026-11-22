@@ -24,10 +24,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fml.common.Mod;
 
 /**
  * Renders a visual pipe/pump extension into the portal block, linking the mechanical pump
@@ -90,12 +90,18 @@ public final class PortalFluidRenderer {
 			FluidTransportBehaviour pipe = BlockEntityBehaviour.get(level, pipePos, FluidTransportBehaviour.TYPE);
 			if (pipe == null)
 				continue;
-			if (!pipe.canHaveFlowToward(pipeState, pipeTowardPortal))
-				continue;
 
-			if (pipe instanceof PortalPumpAccess access && !access.transferables$isPumpPortalConnected()) {
-				if (!PortalFluidLink.isFacingPortal(level, pipePos, pipeTowardPortal))
+			if (pipe instanceof PortalPumpAccess access) {
+				boolean validFacing;
+				if (access.transferables$isPumpPortalConnected()) {
+					validFacing = access.transferables$getPumpPortalDirection() == pipeTowardPortal;
+				} else {
+					validFacing = PortalFluidLink.isFacingPortal(level, pipePos, pipeTowardPortal);
+				}
+				if (!validFacing)
 					continue;
+			} else if (!pipe.canHaveFlowToward(pipeState, pipeTowardPortal)) {
+				continue;
 			}
 
 			renderPipeOnPortalBlock(pipe, pipeState, level, portalPos, pipeTowardPortal, camera, poseStack,

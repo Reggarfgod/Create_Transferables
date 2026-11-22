@@ -91,11 +91,11 @@ public abstract class EncasedCogVisualMixin {
 				transferables$portalHalf.delete();
 			transferables$towardPortal = towardPortal;
 			transferables$portalHalf = PortalShaftHalfInstances.create(
-					((AbstractVisualAccessor) this).transferables$instancerProvider(), be, towardPortal);
+					((AbstractVisualAccessor) this).transferables$instancerProvider(), be, access.transferables$visualPos(), towardPortal);
 			access.transferables$relight(PortalShaftHalfInstances.portalPos(be, towardPortal), transferables$portalHalf);
 			return;
 		}
 
-		PortalShaftHalfInstances.sync(transferables$portalHalf, be, towardPortal);
+		PortalShaftHalfInstances.sync(transferables$portalHalf, be, access.transferables$visualPos(), towardPortal);
 	}
 }
