@@ -3,8 +3,7 @@ name: Build and Release
 on:
   push:
     branches:
-      - main
-      - Multi-dev
+      - Multi-Ver
     paths-ignore:
       - '**.md'
       - '.github/ISSUE_TEMPLATE/**'
@@ -26,9 +25,12 @@ jobs:
       - name: Read mod version from gradle.properties
         id: mod_info
         run: |
-          VERSION=$(grep -E "^mod_version\s*=" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          VERSION=$(grep -E "^version\s*=" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
           if [ -z "$VERSION" ]; then
-            echo "::error::Could not find 'mod_version' in gradle.properties"
+            VERSION=$(grep -E "^mod_version\s*=" gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          fi
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not find 'version' or 'mod_version' in gradle.properties"
             exit 1
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
@@ -40,65 +42,91 @@ jobs:
         run: |
           TAG="${{ steps.mod_info.outputs.tag }}"
           if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Tag $TAG already exists. Skipping release build."
-            echo "exists=true" >> $GITHUB_OUTPUT
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              echo "Tag $TAG exists, but workflow was dispatched manually. Proceeding with build."
+              echo "exists=false" >> $GITHUB_OUTPUT
+            else
+              echo "Tag $TAG already exists. Skipping release build."
+              echo "exists=true" >> $GITHUB_OUTPUT
+            fi
           else
             echo "Tag $TAG does not exist. Proceeding with build."
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set up Java 21 & 17
+      - name: Set up Java 17
         if: steps.check_tag.outputs.exists == 'false'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: |
-            21
-            17
+          java-version: '17'
+
+      - name: Set up Java 25
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Set up Java 21 (Default JAVA_HOME)
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Setup Gradle
         if: steps.check_tag.outputs.exists == 'false'
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Grant execute permission for gradlew
-        if: steps.check_tag.outputs.exists == 'false'
-        run: chmod +x gradlew
-
-      - name: Build mod with Gradle
+      - name: Grant execute permissions for Gradle wrappers
         if: steps.check_tag.outputs.exists == 'false'
         run: |
-          # Strip local developer java path if present
-          sed -i '/^org\.gradle\.java\.home/d' gradle.properties
-          ./gradlew build --no-daemon
+          chmod +x gradlew
+          if [ -f "26.1/forge/gradlew" ]; then
+            chmod +x 26.1/forge/gradlew
+          fi
 
-      - name: Collect 4 Subproject Artifacts
+      - name: Build all version modules with Gradle
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          # Strip local developer Java home path if present
+          sed -i '/^org\.gradle\.java\.home/d' gradle.properties
+
+          echo "=== Building root multi-version projects (1.20.1, 1.21.1, 1.21.11, 26.1) ==="
+          ./gradlew build -x test --no-daemon
+
+          if [ -f "26.1/forge/gradlew" ]; then
+            echo "=== Building standalone 26.1 Forge project ==="
+            (cd 26.1/forge && ./gradlew jar -x test --no-daemon)
+          fi
+
+      - name: Collect Subproject Artifacts
         if: steps.check_tag.outputs.exists == 'false'
         run: |
           mkdir -p release_artifacts
 
-          # Target the 4 subprojects directly
-          TARGET_DIRS=("common" "fabric-1.20.1" "forge-1.20.1" "neoforge-1.21.1")
+          # Collect built loader jars from subproject modules
+          MODULE_DIRS=$(ls -d fabric-1.20.1 forge-1.20.1 neoforge-1.21.1 1.20.1 1.21.1 1.21.11 26.1 2>/dev/null || true)
 
-          for dir in "${TARGET_DIRS[@]}"; do
-            if [ -d "$dir/build/libs" ]; then
-              for jar in "$dir"/build/libs/*.jar; do
-                if [ -f "$jar" ]; then
-                  filename=$(basename "$jar")
-                  # Skip sources, javadoc, or dev artifacts
-                  if [[ "$filename" == *"-sources"* ]] || [[ "$filename" == *"-javadoc"* ]] || [[ "$filename" == *"-dev"* ]]; then
-                    continue
-                  fi
-                  cp "$jar" "release_artifacts/${filename}"
-                  echo "Collected: $jar -> release_artifacts/${filename}"
-                fi
-              done
-            else
-              echo "Directory $dir/build/libs not found, skipping."
-            fi
+          find $MODULE_DIRS -type f -path "*/build/libs/*.jar" \
+            ! -name "*-sources.jar" \
+            ! -name "*-javadoc.jar" \
+            ! -name "*-dev.jar" \
+            ! -name "*unobf*.jar" \
+            ! -name "*common*.jar" | while read -r jar; do
+              filename=$(basename "$jar")
+              clean_name=$(echo "$filename" | tr ' ' '_')
+              cp -v "$jar" "release_artifacts/${clean_name}"
           done
 
           echo "=== Staged files for release ==="
           ls -lh release_artifacts/
+
+          if [ -z "$(ls -A release_artifacts)" ]; then
+            echo "::error::No release artifacts found in build directories!"
+            exit 1
+          fi
 
       - name: Generate Changelog
         if: steps.check_tag.outputs.exists == 'false'
